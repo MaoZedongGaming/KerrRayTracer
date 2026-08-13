@@ -24,27 +24,27 @@
     <ClInclude Include="length_scales.hpp">
       <Filter>Header Files\GR maths</Filter>
     </ClInclude>
-    <ClInclude Include="lightlike_geodesics.hpp">
-      <Filter>Header Files\GR maths</Filter>
-    </ClInclude>
     <ClInclude Include="photons.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="relativistic_camera.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="trajectory_equations.hpp">
+      <Filter>Header Files\GR maths</Filter>
+    </ClInclude>
     <ClInclude Include="general_relativity.hpp">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\GR maths</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="timelike_geodesics.hpp">
-      <Filter>Header Files\GR maths</Filter>
-    </ClCompile>
     <ClCompile Include="length_scales.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="general_relativity.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="relativistic_camera.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

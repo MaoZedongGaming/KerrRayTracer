@@ -141,15 +141,15 @@
   <ItemGroup>
     <ClInclude Include="general_relativity.hpp" />
     <ClInclude Include="length_scales.hpp" />
-    <ClInclude Include="lightlike_geodesics.hpp" />
     <ClInclude Include="maths.hpp" />
     <ClInclude Include="photons.hpp" />
     <ClInclude Include="relativistic_camera.hpp" />
+    <ClInclude Include="trajectory_equations.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="general_relativity.cpp" />
     <ClCompile Include="length_scales.cpp" />
-    <ClCompile Include="timelike_geodesics.hpp" />
+    <ClCompile Include="relativistic_camera.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
