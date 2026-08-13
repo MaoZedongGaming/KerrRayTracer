@@ -16,6 +16,7 @@ public:
 	Tetrad frame; // camera orthonormal tetrad
 	Vector4d position; // (t, r, theta, phi) in Boyer-Lindquist coordinates
 	Vector4d velocity; // (dt/dtau, dr/dtau, dtheta/dtau, dphi/dtau) in Boyer-Lindquist coordinates
+	Photons photons;
 
 	float fov = 60.0f; // field of view in degrees
 	int width;
@@ -26,6 +27,8 @@ public:
 	double yaw = 0.0f; // camera yaw in degrees
 
 	void initTetrad();
-	void setPosition(Vector4d const& pos);
-	void generatePhotons(Photons& photons);
+	void setPosition(double r, double theta);
+	void generatePhotons();
+
+	RelativisticCamera(int w, int h);
 };

@@ -1,14 +1,15 @@
 #pragma once
 #include "maths.hpp"
 
-//metric stuff, christoffel symbols, etc. for Kerr spacetime in Boyer-Lindquist coordinates
-//kinda a useless file because carter's equations are overpowered and don't require the metric or christoffel symbols, but it's here for completeness
-// still need the metric and inverse metric for tetrad and gravitational redshift calculations and raising/lowering indices, so it's not completely useless
+// GR utility functions, since we're using carter's equations all that is necessary is the metric which is broken up so there aren't any branches, M = 1
 
-double metricAt(size_t mu, size_t nu, double r, double theta);  // kerr metric doesn't depend on t or phi, so we can just pass in r and theta instead of the full position vector, also M = 1 
+constexpr double g_tt(double r, double theta);
 
-//double metricDerivativeAt(size_t alpha, size_t mu, size_t nu, Vector4d const& pos, double mass, double spin);
+constexpr double g_rr(double r, double theta);
 
-double inverseMetricAt(size_t mu, size_t nu, double r, double theta);
+constexpr double g_thth(double r, double theta);
 
-//double christoffelSymbol(size_t lambda, size_t mu, size_t nu, Vector4d const& pos, double mass, double spin);
+constexpr double g_phiphi(double r, double theta);
+
+constexpr double g_tphi(double r, double theta);
+
