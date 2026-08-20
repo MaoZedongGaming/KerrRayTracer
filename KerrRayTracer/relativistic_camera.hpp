@@ -1,9 +1,8 @@
+
 #include "maths.hpp"
+#include "photons.hpp"
 
-// the camera object has to be a relativistic object within the kerr spacetime, no god views allowed compared to schwarzschild spacetime
-
-struct Photons;
-
+// the camera object has to be a relativistic object within the kerr spacetime, no god views allowed compared to schwarzschild spacetime, and for the E = 1 generalisation to work the frame must be stationary so ZAMO frame
 struct Tetrad {
 	Vector4d e0; // timelike vector, camera 4-velocity
 	Vector4d e1; // spacelike vector, camera right direction
@@ -22,7 +21,6 @@ public:
 	int width;
 	int height;
 
-	double roll = 0.0f; // camera roll in degrees
 	double pitch = 0.0f; // camera pitch in degrees
 	double yaw = 0.0f; // camera yaw in degrees
 

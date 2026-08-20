@@ -1,3 +1,4 @@
+#pragma once
 #include <vector>
 
 //Vector4d is too AoS for raytracing, we need SoA for better cache performance
@@ -9,7 +10,8 @@ enum class PhotonState : uint8_t {
 	Active = 0,
 	Escaped,
 	Captured,
-	AccretionDiskHit
+	AccretionDiskHit,
+	PhotonSphere
 };
 
 struct Photons {
@@ -30,7 +32,13 @@ struct Photons {
 	std::vector <PhotonState> state;
 	std::vector <uint32_t> activeIndices; 
 
-	size_t count;
+	std::vector <double> dlambda;  // per photon adaptative time step
+	// would using add a k1 array for FSAL in RKDP but that would be bad for the GPU
+
+	size_t count = 0;
 
 	void reserve(size_t i);
+	// adaptive RKDP, mino time, impact constants, affine parameter starts at 0.01
+	void rkdpStepRay(size_t i);
+	void traceAllRays();
 };

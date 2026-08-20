@@ -30,10 +30,10 @@
     <ClInclude Include="relativistic_camera.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="trajectory_equations.hpp">
+    <ClInclude Include="general_relativity.hpp">
       <Filter>Header Files\GR maths</Filter>
     </ClInclude>
-    <ClInclude Include="general_relativity.hpp">
+    <ClInclude Include="parameters.hpp">
       <Filter>Header Files\GR maths</Filter>
     </ClInclude>
   </ItemGroup>
@@ -48,6 +48,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="photons.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
