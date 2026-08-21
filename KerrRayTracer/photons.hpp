@@ -16,21 +16,21 @@ enum class PhotonState : uint8_t {
 
 struct Photons {
 	// variable quantities that are continually updated during the simulation
-	std::vector <double> t;
+	//std::vector <double> t;  // I don't think you'd ever need coordinate time for anything in rendering 
 	std::vector <double> r;
 	std::vector <double> theta;
 	std::vector <double> phi;
 
 	// read only impact constant that are set by the camera and the initial conditions of the photon
-	std::vector <double> xi;
-	std::vector <double> eta;
+	std::vector <double> xi;  // L_Z / E
+	std::vector <double> eta;  // Q / E^2
 
 	// states that are also updated before every integration step, but are not used in the integration itself, branches are bad for performance
 	std::vector <float> sign_r; // sign of the radial momentum, +1 for outgoing, -1 for ingoing
 	std::vector <float> sign_theta; // sign of the polar momentum, +1 for increasing theta, -1 for decreasing theta
 
 	std::vector <PhotonState> state;
-	std::vector <uint32_t> activeIndices; 
+	//std::vector <size_t> activeIndices; 
 
 	std::vector <double> dlambda;  // per photon adaptative time step
 	// would using add a k1 array for FSAL in RKDP but that would be bad for the GPU
@@ -38,6 +38,8 @@ struct Photons {
 	size_t count = 0;
 
 	void reserve(size_t i);
+	void resize(size_t i);
+	void clear();
 	// adaptive RKDP, mino time, impact constants, affine parameter starts at 0.01
 	void rkdpStepRay(size_t i);
 	void traceAllRays();

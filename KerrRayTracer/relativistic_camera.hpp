@@ -1,6 +1,7 @@
 
 #include "maths.hpp"
 #include "photons.hpp"
+#include <vector>
 
 // the camera object has to be a relativistic object within the kerr spacetime, no god views allowed compared to schwarzschild spacetime, and for the E = 1 generalisation to work the frame must be stationary so ZAMO frame
 struct Tetrad {
@@ -12,14 +13,16 @@ struct Tetrad {
 
 class RelativisticCamera {
 public:
+	Photons photons;
 	Tetrad frame; // camera orthonormal tetrad
+	std::vector<uint32_t> pixelBuffer;
 	Vector4d position; // (t, r, theta, phi) in Boyer-Lindquist coordinates
 	Vector4d velocity; // (dt/dtau, dr/dtau, dtheta/dtau, dphi/dtau) in Boyer-Lindquist coordinates
-	Photons photons;
+	
 
 	float fov = 60.0f; // field of view in degrees
-	int width;
-	int height;
+	size_t width;
+	size_t height;
 
 	double pitch = 0.0f; // camera pitch in degrees
 	double yaw = 0.0f; // camera yaw in degrees
@@ -28,5 +31,5 @@ public:
 	void setPosition(double r, double theta);
 	void generatePhotons();
 
-	RelativisticCamera(int w, int h);
+	RelativisticCamera(size_t w, size_t h);
 };

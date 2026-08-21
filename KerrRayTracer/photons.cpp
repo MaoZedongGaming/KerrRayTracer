@@ -2,6 +2,7 @@
 #include "parameters.hpp"
 #include "length_scales.hpp"
 #include <cmath>
+#include <iostream>
 #include <algorithm>
 #include "omp.h"
 
@@ -28,7 +29,6 @@ bool intersectAccretionDisk(double r, double theta) {
 }
 
 void Photons::reserve(size_t i) {
-	t.reserve(i);
 	r.reserve(i);
 	theta.reserve(i);
 	phi.reserve(i);
@@ -37,12 +37,39 @@ void Photons::reserve(size_t i) {
 	sign_r.reserve(i);
 	sign_theta.reserve(i);
 	state.reserve(i);
-	activeIndices.reserve(i);
+	//activeIndices.reserve(i);
 	dlambda.reserve(i);
 }
 
+void Photons::resize(size_t i) {
+	r.resize(i);
+	theta.resize(i);
+	phi.resize(i);
+	xi.resize(i);
+	eta.resize(i);
+	sign_r.resize(i);
+	sign_theta.resize(i);
+	state.resize(i);
+	//activeIndices.resize(i);
+	dlambda.resize(i);
+}
+
+void Photons::clear() {
+	r.clear();
+	theta.clear();
+	phi.clear();
+	xi.clear();
+	eta.clear();
+	sign_r.clear();
+	sign_theta.clear();
+	state.clear();
+	//activeIndices.clear();
+	dlambda.clear();
+	count = 0;
+}
+
 struct PhotonDerivative {
-	double dt;
+	//double dt;
 	double dr;
 	double dtheta;
 	double dphi;
@@ -53,12 +80,12 @@ PhotonDerivative evaluate(double r, double theta, float sign_r, float sign_theta
 	double R = P * P - delta(r) * (eta + (xi - a) * (xi - a));
 	double Theta = eta + a * a * cos(theta) * cos(theta) - xi * xi / (tan(theta) * tan(theta));
 
-	double dt = -a * (a * sin(theta) * sin(theta) - xi) + (r * r + a * a) * P / delta(r);
+	//double dt = -a * (a * sin(theta) * sin(theta) - xi) + (r * r + a * a) * P / delta(r);
 	double dr = sign_r * sqrt(std::max(0.0, R));
 	double dtheta = sign_theta * sqrt(std::max(0.0, Theta));
 	double dphi = -(a - xi / (sin(theta) * sin(theta))) + P * a / delta(r);
 
-	return PhotonDerivative{ dt, dr, dtheta, dphi };
+	return PhotonDerivative{ /*dt,*/ dr, dtheta, dphi };
 }
 
 void Photons::rkdpStepRay(size_t i) {
@@ -66,11 +93,11 @@ void Photons::rkdpStepRay(size_t i) {
 	constexpr double atol = 1e-6;
 	constexpr double safety = 0.9;
 	constexpr double min_scale = 0.2;
-	constexpr double max_scale = 5.0;
+	constexpr double max_scale = 10.0;
+	constexpr int MAX_STEPS = 50;
 
 	PhotonDerivative k1, k2, k3, k4, k5, k6, k7;
-	bool acceptedStep = false;
-	do {
+	for (int rejectedSteps = 0; rejectedSteps < MAX_STEPS; ++rejectedSteps) {
 		k1 = evaluate(r[i], theta[i], sign_r[i], sign_theta[i], xi[i], eta[i]);
 		double r_stage = r[i] + dlambda[i] * (k1.dr / 5.0);
 		double theta_stage = theta[i] + dlambda[i] * (k1.dtheta / 5.0);
@@ -105,8 +132,8 @@ void Photons::rkdpStepRay(size_t i) {
 
 		dlambda[i] *= scale;
 
-		if (norm_err <= 1.0) {
-			t[i] += dlambda[i] * (35.0 / 384.0 * k1.dt + 500.0 / 1113.0 * k3.dt + 125.0 / 192.0 * k4.dt + -2187.0 / 6784.0 * k5.dt + 11.0 / 84.0 * k6.dt);
+		if (norm_err <= 1.0 || rejectedSteps == MAX_STEPS) {
+			//t[i] += dlambda[i] * (35.0 / 384.0 * k1.dt + 500.0 / 1113.0 * k3.dt + 125.0 / 192.0 * k4.dt + -2187.0 / 6784.0 * k5.dt + 11.0 / 84.0 * k6.dt);
 			r[i] = next_r;
 			theta[i] = next_theta;
 			phi[i] += dlambda[i] * (35.0 / 384.0 * k1.dphi + 500.0 / 1113.0 * k3.dphi + 125.0 / 192.0 * k4.dphi + -2187.0 / 6784.0 * k5.dphi + 11.0 / 84.0 * k6.dphi);
@@ -115,46 +142,37 @@ void Photons::rkdpStepRay(size_t i) {
 			double Theta_next = eta[i] + a * a * cos(theta[i]) * cos(theta[i]) - xi[i] * xi[i] / (tan(theta[i]) * tan(theta[i]));
 			sign_r[i] *= sgn(R_next);
 			sign_theta[i] *= sgn(Theta_next);
-			acceptedStep = true;
+			break;
 		}
-	} while (!acceptedStep);
+	}
 }
 
 void Photons::traceAllRays() {
-	constexpr int MAX_STEPS = 300;
-	int steps = 0;
-	for (int idx = activeIndices.size() - 1; idx >= 0 && steps < MAX_STEPS; --idx) {
-		size_t i = activeIndices[idx];
-		double prev_theta = theta[i];
-		rkdpStepRay(i);
+	constexpr int MAX_STEPS = 1000;
+	
+	#pragma omp parallel for schedule(dynamic, 16)
+	for (int i = 0; i < count; ++i) {
+		for (size_t steps = 0; steps < MAX_STEPS; ++steps) {
 
-		bool terminated = false;
+			if (state[i] != PhotonState::Active)
+				break;
 
-		if (r[i] >= r_sky) {
-			state[i] = PhotonState::Escaped;
-			// sample from skybox texture
-			terminated = true;
-		}
-		if (r[i] <= r_horizon + 1e-4) {
-			state[i] = PhotonState::Captured;
-			// black pixel
-			terminated = true;
-		}
-		if (intersectAccretionDisk(r[i], theta[i])) {
-			state[i] = PhotonState::AccretionDiskHit;
-			// accretion disk sampler algorithm
-			terminated = true;
-		}
-		if (terminated) {
-			activeIndices[idx] = activeIndices.back();
-			activeIndices.pop_back();
-			continue;
-		}
-		++steps;
-	}
+			rkdpStepRay(i);
 
-	for (auto i : activeIndices) {
-		state[i] = PhotonState::PhotonSphere;
-		// black pixel because the photon never escaped
+			if (r[i] >= r_sky) {
+				state[i] = PhotonState::Escaped;
+				//std::cout << "escaped! \n";
+				// sample from skybox texture
+			}
+			if (r[i] <= r_horizon + 1e-4) {
+				state[i] = PhotonState::Captured;
+				//std::cout << "captured! \n";
+				// black pixel
+			}
+			if (intersectAccretionDisk(r[i], theta[i])) {
+				state[i] = PhotonState::AccretionDiskHit;
+				// accretion disk sampler algorithm
+			}
+		}
 	}
 }
