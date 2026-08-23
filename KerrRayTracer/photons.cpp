@@ -130,7 +130,7 @@ void Photons::rkdpStepRay(size_t i) {
 			phi[i] = std::fmod(phi[i], TWO_PI);
 			phi[i] += std::signbit(phi[i]) * TWO_PI;
 			dr[i] = k7.dr; 
-			dtheta[i] = k7.dtheta;3
+			dtheta[i] = k7.dtheta;
 			dphi[i] = k7.dphi;
 			sign_r[i] *= (2 * (abs(dr[i]) > 1e-14) - 1);
 			sign_theta[i] *= (2 * (abs(dtheta[i]) > 1e-14) - 1);
