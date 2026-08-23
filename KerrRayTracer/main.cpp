@@ -68,7 +68,7 @@ int main() {
 	uint64_t ms_elapsed = 0;
 	
 	RelativisticCamera camera(WIDTH, HEIGHT);
-	camera.setPosition(30.0, 1.5);
+	camera.setPosition(25.0, 1.0);
 
 	camera.initTetrad();
 	SDL_Log("generating photons...\n");
@@ -86,7 +86,7 @@ int main() {
 	ms_elapsed = SDL_GetTicks();
 	SDL_Log("finished drawing screen in %u ms!\n", ms_elapsed);
 
-	saveTextureToPNG(renderer, streamTexture, "C:\\Users\\User\\source\\repos\\KerrRayTracer\\KerrRayTracer\\renders\\Blackhole14.png");
+	saveTextureToPNG(renderer, streamTexture, "C:\\Users\\User\\source\\repos\\KerrRayTracer\\KerrRayTracer\\renders\\Blackhole15.png");
 	/*
 	SDL_Event event;
 	while (running) {

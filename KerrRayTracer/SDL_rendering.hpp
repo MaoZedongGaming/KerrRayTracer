@@ -169,11 +169,11 @@ void drawScreen(RelativisticCamera& camera, SDL_Texture* streamTexture) {
     #pragma omp parallel for schedule(static)
     for (int photonIndex = 0; photonIndex < camera.width * camera.height; ++photonIndex) {
         switch (camera.photons.state[photonIndex]) {
+        case PhotonState::Active:
+            camera.pixelBuffer[photonIndex] = packRGBA32(0, 255, 0);
+            break;
         case PhotonState::Captured:
             camera.pixelBuffer[photonIndex] = packRGBA32(0, 0, 0);
-            break;
-        case PhotonState::Active:
-            camera.pixelBuffer[photonIndex] = packRGBA32(255, 0, 0);
             break;
         case PhotonState::Escaped:
             camera.pixelBuffer[photonIndex] = sampleSkyField(camera.photons.theta[photonIndex], camera.photons.phi[photonIndex]);

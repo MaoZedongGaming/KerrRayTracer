@@ -44,8 +44,8 @@ PhotonDerivative evaluate(double r, double theta, float sign_r, float sign_theta
 	double P = r * r + a * a - a * xi;
 	double R = P * P - delta(r) * (eta + (xi - a) * (xi - a));
 	double Theta = eta + a * a * cos(theta) * cos(theta) - xi * xi / (tan(theta) * tan(theta));
-	double dr = sign_r * sqrt(std::max(0.0, R));
-	double dtheta = sign_theta * sqrt(std::max(0.0, Theta));
+	double dr = sign_r * sqrt(std::max(R, 0.0));
+	double dtheta = sign_theta * sqrt(std::max(Theta, 0.0));
 	double dphi = -(a - xi / (sin(theta) * sin(theta))) + P * a / delta(r);
 
 	return PhotonDerivative{ dr, dtheta, dphi };
@@ -98,32 +98,38 @@ void Photons::rkdpStepRay(size_t i) {
 		if (norm_err <= 1.0 || rejectedSteps == MAX_STEPS - 1) {
 			//std::cout << "finished RKDP step in " << rejectedSteps << " steps, with norm_err = " << norm_err << " \n";
 			r[i] = std::max(next_r, 0.0);
-			theta[i] = std::clamp(next_theta, 0.0, PI);
+			theta[i] = std::clamp(next_theta, 1e-14, PI - 1e-14);
 			phi[i] += dlambda[i] * (35.0 / 384.0 * dphi[i] + 500.0 / 1113.0 * k3.dphi + 125.0 / 192.0 * k4.dphi + -2187.0 / 6784.0 * k5.dphi + 11.0 / 84.0 * k6.dphi);
 			phi[i] = std::clamp(phi[i], 0.0, TWO_PI);
 			dr[i] = k7.dr; 
 			dtheta[i] = k7.dtheta;
 			dphi[i] = k7.dphi;
-			sign_r[i] *= (2 * (abs(dr[i]) > 1e-14) - 1);
-			sign_theta[i] *= (2 * (abs(dtheta[i]) > 1e-14) - 1);
+			//dr[i] *= (2 * (abs(dr[i]) >= 1e-14) - 1);
+			//dtheta[i] *= (2 * (abs(dtheta[i]) >= 1e-14) - 1);
+			sign_r[i] *= (2 * (abs(dr[i]) >= 1e-14) - 1);
+			sign_theta[i] *= (2 * (abs(dtheta[i]) >= 1e-14) - 1);
+			r[i] += (abs(dr[i]) <= 1e-14) * dlambda[i];
+			theta[i] += (abs(dtheta[i]) <= 1e-14) * dlambda[i];
 			break;
 		}
 	}
 }
 
 void Photons::traceAllRays() {
-	constexpr int MAX_STEPS = 20000;
+	constexpr int MAX_STEPS = 25000;
 
 	#pragma omp parallel for schedule(dynamic, 16)
 	for (int i = 0; i < count; ++i) {
 		for (size_t steps = 0; steps < MAX_STEPS; ++steps) {
+			//std::cout << "r theta phi = (" << r[0] << ", " << theta[0] << ", " << phi[0] << ") \n";
+			//std::cout << "dr dtheta dphi = (" << dr[0] << ", " << dtheta[0] << ", " << dphi[0] << ") \n";
 			if (r[i] >= r_sky) {
 				state[i] = PhotonState::Escaped;
 				break;
 				//std::cout << "escaped! \n";
 				// sample from skybox texture, this works
 			}
-			if (r[i] <= r_horizon + 0.05) {
+			if (r[i] <= r_horizon + 0.01) {
 				state[i] = PhotonState::Captured;
 				break;
 				//std::cout << "captured! \n";
