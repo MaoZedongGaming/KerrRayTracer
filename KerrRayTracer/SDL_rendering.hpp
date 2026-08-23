@@ -10,22 +10,20 @@
 #include <cmath>
 #include <omp.h>
 
-constexpr double MAX_TEMP = 10000.0; //kelvin
+constexpr double MAX_TEMP = 5000.0; //kelvin
 
-constexpr double PI = 3.14159265358979323846;
-constexpr double TWO_PI = 6.28318530717958647692;
 size_t SKY_WIDTH = 0;
 size_t SKY_HEIGHT = 0;
 
 std::vector<uint32_t> unpackSkyField(size_t& outWidth, size_t& outHeight) {
-    SDL_Surface* rawSurface = IMG_Load("resources/8k_sun.jpg");
-    if (!rawSurface) {
+    SDL_Surface* rawSurface = IMG_Load("resources/Milky_Way_360.png");
+    if (rawSurface == nullptr) {
         std::cerr << "couldn't load image: " << SDL_GetError() << "\n";
     }
     SDL_Surface* convertedSurface = SDL_ConvertSurface(rawSurface, SDL_PIXELFORMAT_RGBA32);
     SDL_DestroySurface(rawSurface);
 
-    if (!convertedSurface) {
+    if (convertedSurface == nullptr) {
         std::cerr << "couldn't convert surface: " << SDL_GetError() << "\n";
         SDL_Quit();
     }
@@ -49,8 +47,20 @@ std::vector<uint32_t> unpackSkyField(size_t& outWidth, size_t& outHeight) {
 
 std::vector<uint32_t> skyPixels = unpackSkyField(SKY_WIDTH, SKY_HEIGHT);
 
-uint32_t packRGBA32(uint8_t r, uint8_t g, uint8_t b) {
-    return ((uint32_t)r << 24) | ((uint32_t)g << 16) | ((uint32_t)b << 8) | ((uint32_t)255);
+constexpr uint32_t packRGBA32(uint8_t r, uint8_t g, uint8_t b) {
+    return ((uint32_t)255 << 24) | ((uint32_t)b << 16) | ((uint32_t)g << 8) | ((uint32_t)r);
+}
+
+constexpr uint8_t getRed(uint32_t colour) {
+    return (colour & 0xFF);
+}
+
+constexpr uint8_t getGreen(uint32_t colour) {
+    return ((colour >> 8) & 0xFF);
+}
+
+constexpr uint8_t getBlue(uint32_t colour) {
+    return ((colour >> 16) & 0xFF);
 }
 
 uint32_t kelvinToRGB(double kelvin) {  // RGBA32 format, Tanner Helland algorithm
@@ -100,8 +110,8 @@ uint32_t kelvinToRGB(double kelvin) {  // RGBA32 format, Tanner Helland algorith
 }
 
 std::vector<uint32_t> populateTemperature() {
-    std::vector<uint32_t> res(40000);
-    for (size_t i = 999; i < 40000; ++i)
+    std::vector<uint32_t> res(40000, packRGBA32(0, 0, 0));
+    for (size_t i = 1000; i < 40000; ++i)
         res[i] = kelvinToRGB((double)(i));
     return res;
 }
@@ -109,7 +119,7 @@ std::vector<uint32_t> populateTemperature() {
 std::vector<uint32_t> temperatureLookup = populateTemperature();
 
 uint32_t temperatureToRGB(double t) {
-    return temperatureLookup[(size_t)std::clamp(t, 999.0, 40000.0)];
+    return temperatureLookup[(size_t)std::clamp(t, 0.0, 40000.0)];
 }
 
 double keplerianAngularVelocity(double r) {
@@ -117,11 +127,11 @@ double keplerianAngularVelocity(double r) {
 }
 
 double g_factor(double r, double xi) {
-    return (sqrt(1.0 - 2 / r + 2 * a / (r * sqrt(r)))) / (1.0 + keplerianAngularVelocity(r) * xi);
+    return (sqrt(1.0 - 2.0 / r + 2.0 * a / (r * sqrt(r)))) / (1.0 + keplerianAngularVelocity(r) * xi);
 }
 
 double novikovThorneTemperature(double r) {
-	return MAX_TEMP * pow(r_ISCO / r, 0.75) * pow((1.0 - sqrt(r_ISCO / r)), 0.25);  // Shakura-Sunyaev approximation
+    return MAX_TEMP * pow((r_ISCO / r), 0.75);/* * sqrt(sqrt(1.0 - sqrt(r_ISCO / r)));*/  // Shakura-Sunyaev approximation
 }
 
 double observedTemperature(double r, double xi) {
@@ -129,10 +139,10 @@ double observedTemperature(double r, double xi) {
 }
 
 uint32_t relativisticBeaming(double r, double xi, uint32_t colour) {
-    double intensity = pow(g_factor(r, xi), 3.0);
-    uint8_t r0 = (colour >> 24) & 0xFF;
-    uint8_t g = (colour >> 16) & 0xFF;
-    uint8_t b = (colour >> 8) & 0xFF;
+    double intensity = pow(g_factor(r, xi), 4.0);
+    uint8_t r0 = getRed(colour);
+    uint8_t g = getGreen(colour);
+    uint8_t b = getBlue(colour);
     r0 = (uint8_t)std::clamp(r0 * intensity, 0.0, 255.0);
     g = (uint8_t)std::clamp(g * intensity, 0.0, 255.0);
     b = (uint8_t)std::clamp(b * intensity, 0.0, 255.0);
@@ -140,17 +150,14 @@ uint32_t relativisticBeaming(double r, double xi, uint32_t colour) {
 }
 
 uint32_t getAccretionColour(double r, double xi) {
-    uint32_t colour = 0;
+    uint32_t colour = packRGBA32(0, 0, 0);
     colour = temperatureToRGB(observedTemperature(r, xi));
     colour = relativisticBeaming(r, xi, colour);
     return colour;
 }
 
 uint32_t sampleSkyField(double theta, double phi) {
-    double u = std::fmod(phi, TWO_PI);
-    if (u < 0.0)
-        u += TWO_PI;
-    u /= TWO_PI;
+    double u = std::fmod(phi, TWO_PI) / TWO_PI; 
     double v = std::clamp(theta / PI, 0.0, 1.0);
     size_t x = std::clamp((size_t)(u * SKY_WIDTH), 0ull, SKY_WIDTH - 1);
     size_t y = std::clamp((size_t)(v * SKY_HEIGHT), 0ull, SKY_HEIGHT - 1);
@@ -158,14 +165,14 @@ uint32_t sampleSkyField(double theta, double phi) {
 }
 
 void drawScreen(RelativisticCamera& camera, SDL_Texture* streamTexture) {
-    void* pixels = nullptr;
-    int pitch = 0;
-    #pragma omp parallel for schedule(dynamic, 16)
+    #pragma omp parallel for schedule(static)
     for (int photonIndex = 0; photonIndex < camera.width * camera.height; ++photonIndex) {
         switch (camera.photons.state[photonIndex]) {
         case PhotonState::Captured:
+            camera.pixelBuffer[photonIndex] = packRGBA32(0, 0, 0);
+            break;
         case PhotonState::Active:
-            camera.pixelBuffer[photonIndex] = 0;
+            camera.pixelBuffer[photonIndex] = packRGBA32(255, 0, 0);
             break;
         case PhotonState::Escaped:
             camera.pixelBuffer[photonIndex] = sampleSkyField(camera.photons.theta[photonIndex], camera.photons.phi[photonIndex]);

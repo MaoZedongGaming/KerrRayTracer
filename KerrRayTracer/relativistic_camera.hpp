@@ -1,7 +1,8 @@
-
+#pragma once
 #include "maths.hpp"
 #include "photons.hpp"
 #include <vector>
+#include "parameters.hpp"
 
 // the camera object has to be a relativistic object within the kerr spacetime, no god views allowed compared to schwarzschild spacetime, and for the E = 1 generalisation to work the frame must be stationary so ZAMO frame
 struct Tetrad {
@@ -20,7 +21,7 @@ public:
 	Vector4d velocity; // (dt/dtau, dr/dtau, dtheta/dtau, dphi/dtau) in Boyer-Lindquist coordinates
 	
 
-	float fov = 60.0f; // field of view in degrees
+	float fov = 60.0f * (float)PI / 180.0f; // field of view in radians
 	size_t width;
 	size_t height;
 

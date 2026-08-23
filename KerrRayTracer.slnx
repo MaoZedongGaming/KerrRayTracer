@@ -3,5 +3,5 @@
     <Platform Name="x64" />
     <Platform Name="x86" />
   </Configurations>
-  <Project Path="KerrRayTracer/KerrRayTracer.vcxproj" />
+  <Project Path="KerrRayTracer/KerrRayTracer.vcxproj" Id="84ab6902-86aa-487c-8a1a-255f37866f4d" />
 </Solution>
