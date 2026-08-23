@@ -119,7 +119,7 @@ std::vector<uint32_t> populateTemperature() {
 std::vector<uint32_t> temperatureLookup = populateTemperature();
 
 uint32_t temperatureToRGB(double t) {
-    return temperatureLookup[(size_t)std::clamp(t, 0.0, 40000.0)];
+    return temperatureLookup[(size_t)std::min(t, 40000.0)];
 }
 
 double keplerianAngularVelocity(double r) {
@@ -131,7 +131,7 @@ double g_factor(double r, double xi) {
 }
 
 double novikovThorneTemperature(double r) {
-    return MAX_TEMP * pow((r_ISCO / r), 0.75);/* * sqrt(sqrt(1.0 - sqrt(r_ISCO / r)));*/  // Shakura-Sunyaev approximation
+    return MAX_TEMP * pow((r_ISCO / r), 0.75) * sqrt(sqrt(1.0 - sqrt(r_ISCO / r)));  // Shakura-Sunyaev approximation
 }
 
 double observedTemperature(double r, double xi) {
@@ -157,7 +157,8 @@ uint32_t getAccretionColour(double r, double xi) {
 }
 
 uint32_t sampleSkyField(double theta, double phi) {
-    double u = std::fmod(phi, TWO_PI) / TWO_PI; 
+    //double u = std::fmod(phi, TWO_PI) / TWO_PI; 
+    double u = std::clamp((phi / TWO_PI), 0.0, 1.0);
     double v = std::clamp(theta / PI, 0.0, 1.0);
     size_t x = std::clamp((size_t)(u * SKY_WIDTH), 0ull, SKY_WIDTH - 1);
     size_t y = std::clamp((size_t)(v * SKY_HEIGHT), 0ull, SKY_HEIGHT - 1);

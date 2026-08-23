@@ -86,7 +86,7 @@ int main() {
 	ms_elapsed = SDL_GetTicks();
 	SDL_Log("finished drawing screen in %u ms!\n", ms_elapsed);
 
-	saveTextureToPNG(renderer, streamTexture, "C:\\Users\\User\\source\\repos\\KerrRayTracer\\KerrRayTracer\\renders\\Blackhole12.png");
+	saveTextureToPNG(renderer, streamTexture, "C:\\Users\\User\\source\\repos\\KerrRayTracer\\KerrRayTracer\\renders\\Blackhole13.png");
 	/*
 	SDL_Event event;
 	while (running) {

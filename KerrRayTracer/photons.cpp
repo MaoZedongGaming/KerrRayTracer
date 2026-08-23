@@ -11,27 +11,18 @@ double accretionThickness(double r) {
 	return H0 * pow((r / r_ISCO), 1.2);
 }
 
-bool crossedEquatorialPlane(double theta_old, double theta_new) {
+constexpr bool crossedEquatorialPlane(double theta_old, double theta_new) {
 	//return (std::cos(theta_old) * std::cos(theta_new) <= 0.0);
-	return ((theta_old <= PI_2 && PI_2 <= theta_new) || ((theta_new <= PI_2 && PI_2 <= theta_new)));
+	return (std::min(theta_old, theta_new) <= PI_2 && PI_2 <= std::max(theta_old, theta_new));
 }
 
-bool intersectAccretionDisk(double r, double theta) {
-	return ((abs(r * cos(theta)) <= accretionThickness(r) + 1e-3) && (r_ISCO <= r && r <= r_acceretion));
-}
-
-//void Photons::reserve(size_t i) {
-//	r.reserve(i);
-//	theta.reserve(i);
-//	phi.reserve(i);
-//	xi.reserve(i);
-//	eta.reserve(i);
-//	sign_r.reserve(i);
-//	sign_theta.reserve(i);
-//	state.reserve(i);
-//	//activeIndices.reserve(i);
-//	dlambda.reserve(i);
+//bool intersectAccretionDisk(double r, double theta) {
+//	return ((abs(r * cos(theta)) <= accretionThickness(r) + 1e-3) && (r_ISCO <= r && r <= r_acceretion));
 //}
+
+bool intersectAccretionDisk(double r, double theta_old, double theta_new) {
+	return crossedEquatorialPlane(theta_old, theta_new) && (r_ISCO < r && r <= r_acceretion);
+}
 
 void Photons::resize(size_t i) {
 	r.resize(i);
@@ -49,31 +40,15 @@ void Photons::resize(size_t i) {
 	count = i;
 }
 
-//void Photons::clear() {
-//	r.clear();
-//	theta.clear();
-//	phi.clear();
-//	xi.clear();
-//	eta.clear();
-//	sign_r.clear();
-//	sign_theta.clear();
-//	state.clear();
-//	//activeIndices.clear();
-//	dlambda.clear();
-//	count = 0;
-//}
-
 PhotonDerivative evaluate(double r, double theta, float sign_r, float sign_theta, double xi, double eta) {
 	double P = r * r + a * a - a * xi;
 	double R = P * P - delta(r) * (eta + (xi - a) * (xi - a));
 	double Theta = eta + a * a * cos(theta) * cos(theta) - xi * xi / (tan(theta) * tan(theta));
-
-	//double dt = -a * (a * sin(theta) * sin(theta) - xi) + (r * r + a * a) * P / delta(r);
 	double dr = sign_r * sqrt(std::max(0.0, R));
 	double dtheta = sign_theta * sqrt(std::max(0.0, Theta));
 	double dphi = -(a - xi / (sin(theta) * sin(theta))) + P * a / delta(r);
 
-	return PhotonDerivative{ /*dt,*/ dr, dtheta, dphi };
+	return PhotonDerivative{ dr, dtheta, dphi };
 }
 
 void Photons::rkdpStepRay(size_t i) {
@@ -122,13 +97,10 @@ void Photons::rkdpStepRay(size_t i) {
 
 		if (norm_err <= 1.0 || rejectedSteps == MAX_STEPS - 1) {
 			//std::cout << "finished RKDP step in " << rejectedSteps << " steps, with norm_err = " << norm_err << " \n";
-			r[i] = next_r;
-			bool thetaOOB = next_theta <= 1e-14 || next_theta >= PI - 1e-14;
-			phi[i] += thetaOOB * PI;
-			theta[i] = (2 * !thetaOOB - 1) * next_theta + (next_theta >= PI - 1e-14) * TWO_PI;
+			r[i] = std::max(next_r, 0.0);
+			theta[i] = std::clamp(next_theta, 0.0, PI);
 			phi[i] += dlambda[i] * (35.0 / 384.0 * dphi[i] + 500.0 / 1113.0 * k3.dphi + 125.0 / 192.0 * k4.dphi + -2187.0 / 6784.0 * k5.dphi + 11.0 / 84.0 * k6.dphi);
-			phi[i] = std::fmod(phi[i], TWO_PI);
-			phi[i] += std::signbit(phi[i]) * TWO_PI;
+			phi[i] = std::clamp(phi[i], 0.0, TWO_PI);
 			dr[i] = k7.dr; 
 			dtheta[i] = k7.dtheta;
 			dphi[i] = k7.dphi;
@@ -162,7 +134,7 @@ void Photons::traceAllRays() {
 			rkdpStepRay(i);
 			
 			//if (intersectAccretionDisk(r[i], theta[i])) {
-			if (crossedEquatorialPlane(oldTheta, theta[i]) && (r_ISCO <= r[i] && r[i] <= r_acceretion)) {
+			if (intersectAccretionDisk(r[i], oldTheta, theta[i])) {
 				state[i] = PhotonState::AccretionDiskHit;
 				break;
 				//std::cout << "Hit AccretionDisk! \n";
