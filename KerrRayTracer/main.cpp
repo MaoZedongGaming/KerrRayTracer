@@ -64,13 +64,11 @@ int main() {
 	}
 
 	bool running = true;
-	
-	SDL_FRect dstRect = { 0.0f, 0.0f, static_cast<float>(WIDTH), static_cast<float>(HEIGHT) };
 
 	uint64_t ms_elapsed = 0;
 	
 	RelativisticCamera camera(WIDTH, HEIGHT);
-	camera.setPosition(30.0, 1.0);
+	camera.setPosition(50.0, 1.5);
 
 	camera.initTetrad();
 	SDL_Log("generating photons...\n");

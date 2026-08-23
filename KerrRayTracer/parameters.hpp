@@ -17,7 +17,7 @@ constexpr int sgn(double x) {
 
 constexpr double a = 0.6;
 
-constexpr double r_sky = 100.0; // skybox radius from the centre
+constexpr double r_sky = 60.0; // skybox radius from the centre
 
 constexpr double r_acceretion = 20.0; // maximal radius of acceretion disk
 
