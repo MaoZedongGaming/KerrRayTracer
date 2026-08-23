@@ -96,7 +96,6 @@ void Photons::rkdpStepRay(size_t i) {
 		dlambda[i] *= scale;
 
 		if (norm_err <= 1.0 || rejectedSteps == MAX_STEPS - 1) {
-			//std::cout << "finished RKDP step in " << rejectedSteps << " steps, with norm_err = " << norm_err << " \n";
 			r[i] = std::max(next_r, 0.0);
 			theta[i] = std::clamp(next_theta, 1e-14, PI - 1e-14);
 			phi[i] += dlambda[i] * (35.0 / 384.0 * dphi[i] + 500.0 / 1113.0 * k3.dphi + 125.0 / 192.0 * k4.dphi + -2187.0 / 6784.0 * k5.dphi + 11.0 / 84.0 * k6.dphi);
@@ -108,15 +107,15 @@ void Photons::rkdpStepRay(size_t i) {
 			//dtheta[i] *= (2 * (abs(dtheta[i]) >= 1e-14) - 1);
 			sign_r[i] *= (2 * (abs(dr[i]) >= 1e-14) - 1);
 			sign_theta[i] *= (2 * (abs(dtheta[i]) >= 1e-14) - 1);
-			r[i] += (abs(dr[i]) <= 1e-14) * dlambda[i];
-			theta[i] += (abs(dtheta[i]) <= 1e-14) * dlambda[i];
+			r[i] += sign_r[i] * (abs(dr[i]) <= 1e-14) * dlambda[i];
+			theta[i] += sign_theta[i] * (abs(dtheta[i]) <= 1e-14) * dlambda[i];
 			break;
 		}
 	}
 }
 
 void Photons::traceAllRays() {
-	constexpr int MAX_STEPS = 25000;
+	constexpr int MAX_STEPS = 30000;
 
 	#pragma omp parallel for schedule(dynamic, 16)
 	for (int i = 0; i < count; ++i) {

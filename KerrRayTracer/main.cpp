@@ -46,8 +46,8 @@ int main() {
     #pragma omp single
 		std::cout << "Running with " << omp_get_num_threads() << " thread(s)\n";
 	}
-	constexpr int WIDTH = 400;
-	constexpr int HEIGHT = 300;
+	constexpr int WIDTH = 1000;
+	constexpr int HEIGHT = 750;
 
 	SDL_Init(SDL_INIT_VIDEO);
 
@@ -68,7 +68,7 @@ int main() {
 	uint64_t ms_elapsed = 0;
 	
 	RelativisticCamera camera(WIDTH, HEIGHT);
-	camera.setPosition(25.0, 1.0);
+	camera.setPosition(30.0, 1.5);
 
 	camera.initTetrad();
 	SDL_Log("generating photons...\n");
@@ -86,7 +86,7 @@ int main() {
 	ms_elapsed = SDL_GetTicks();
 	SDL_Log("finished drawing screen in %u ms!\n", ms_elapsed);
 
-	saveTextureToPNG(renderer, streamTexture, "C:\\Users\\User\\source\\repos\\KerrRayTracer\\KerrRayTracer\\renders\\Blackhole15.png");
+	saveTextureToPNG(renderer, streamTexture, "README_IMG.png");
 	/*
 	SDL_Event event;
 	while (running) {

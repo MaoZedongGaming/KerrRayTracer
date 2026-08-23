@@ -157,7 +157,6 @@ uint32_t getAccretionColour(double r, double xi) {
 }
 
 uint32_t sampleSkyField(double theta, double phi) {
-    //double u = std::fmod(phi, TWO_PI) / TWO_PI; 
     double u = std::clamp((phi / TWO_PI), 0.0, 1.0);
     double v = std::clamp(theta / PI, 0.0, 1.0);
     size_t x = std::clamp((size_t)(u * SKY_WIDTH), 0ull, SKY_WIDTH - 1);
@@ -170,7 +169,7 @@ void drawScreen(RelativisticCamera& camera, SDL_Texture* streamTexture) {
     for (int photonIndex = 0; photonIndex < camera.width * camera.height; ++photonIndex) {
         switch (camera.photons.state[photonIndex]) {
         case PhotonState::Active:
-            camera.pixelBuffer[photonIndex] = packRGBA32(0, 255, 0);
+            camera.pixelBuffer[photonIndex] = packRGBA32(0, 0, 0);
             break;
         case PhotonState::Captured:
             camera.pixelBuffer[photonIndex] = packRGBA32(0, 0, 0);
