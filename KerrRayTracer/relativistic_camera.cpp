@@ -87,8 +87,9 @@ void RelativisticCamera::generatePhotons() {
 		int y = i / (int) width;
 
 		// standard raytracing projection equation, first term puts (x, y) in centre of coordinates, second term applies the proper fov, x gets scaled by aspect ratio
-		double screenX = (2.0 * x / (double)width - 1.0) * tan(fov / 2.0) * ((double)width / (double)height);
-		double screenY = (1.0 - 2.0 * y / (double)height) * tan(fov / 2.0);
+		// must add 0.5 to offset integer screen coordinates because the constants are calculated wrong when x or y = 0 
+		double screenX = (2.0 * ((double)x + 0.5) / (double)width - 1.0) * tan(fov / 2.0) * ((double)width / (double)height);
+		double screenY = (1.0 - 2.0 * ((double)y + 0.5) / (double)height) * tan(fov / 2.0);
 
 		// momenta in the camera's tetrad frame, p_t = E = 1.0
 		double p_1 = 1.0 / sqrt(1.0 + screenX * screenX + screenY * screenY); // x is the forward coordinate in this instance
@@ -98,7 +99,7 @@ void RelativisticCamera::generatePhotons() {
 		// \eta^{\mu \nu} p_\mu = -(1.0)^2 + |p_i|^2 =  -1.0 + 1.0 = 0 so it's a proper lightlike 4 vector
 
 		// momentum projected onto global coordinates
-		Vector4d p = frame.e0 + -p_1 * frame.e1 + p_2 * frame.e2 + -p_3 * frame.e3;
+		Vector4d p = frame.e0 + -p_1 * frame.e1 + -p_2 * frame.e2 + p_3 * frame.e3;
 
 		// conserved covariant constants
 		double E = -(p[0] * g_tt(r, theta) + p[3] * g_tphi(r, theta)); // -p_t

@@ -46,8 +46,8 @@ int main() {
     #pragma omp single
 		std::cout << "Running with " << omp_get_num_threads() << " thread(s)\n";
 	}
-	constexpr int WIDTH = 600;
-	constexpr int HEIGHT = 400;
+	constexpr int WIDTH = 300;
+	constexpr int HEIGHT = 200;
 
 	SDL_Init(SDL_INIT_VIDEO);
 
@@ -86,7 +86,7 @@ int main() {
 	ms_elapsed = SDL_GetTicks();
 	SDL_Log("finished drawing screen in %u ms!\n", ms_elapsed);
 
-	saveTextureToPNG(renderer, streamTexture, "lassalle.png");
+	saveTextureToPNG(renderer, streamTexture, "test3.png");
 	/*
 	SDL_Event event;
 	while (running) {

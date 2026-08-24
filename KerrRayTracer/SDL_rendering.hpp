@@ -14,7 +14,7 @@ size_t SKY_WIDTH = 0;
 size_t SKY_HEIGHT = 0;
 
 std::vector<uint32_t> unpackSkyField(size_t& outWidth, size_t& outHeight) {
-    SDL_Surface* rawSurface = IMG_Load("resources/lassalle_panorama.jpg");
+    SDL_Surface* rawSurface = IMG_Load("resources/Milky_Way_360.png");
     if (rawSurface == nullptr) {
         std::cerr << "couldn't load image: " << SDL_GetError() << "\n";
     }
@@ -159,16 +159,16 @@ uint32_t sampleSkyField(double theta, double phi) {
     double u = std::clamp((phi / TWO_PI), 0.0, 1.0);
     double v = std::clamp(theta / PI, 0.0, 1.0);
     size_t x = std::clamp((size_t)(u * SKY_WIDTH), 0ull, SKY_WIDTH - 1);
-    size_t y = SKY_HEIGHT - 1 - std::clamp((size_t)(v * SKY_HEIGHT), 0ull, SKY_HEIGHT - 1);
+    size_t y = std::clamp((size_t)(v * SKY_HEIGHT), 0ull, SKY_HEIGHT - 1);
     return skyPixels[x + SKY_WIDTH * y];
 }
 
 void drawScreen(RelativisticCamera& camera, SDL_Texture* streamTexture) {
-    #pragma omp parallel for schedule(static)
+    #pragma omp parallel for schedule(dynamic, 16)
     for (int photonIndex = 0; photonIndex < camera.width * camera.height; ++photonIndex) {
         switch (camera.photons.state[photonIndex]) {
         case PhotonState::Active:
-            camera.pixelBuffer[photonIndex] = packRGBA32(0, 0, 0);
+            camera.pixelBuffer[photonIndex] = packRGBA32(0, 255, 0);
             break;
         case PhotonState::Captured:
             camera.pixelBuffer[photonIndex] = packRGBA32(0, 0, 0);

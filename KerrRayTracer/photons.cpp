@@ -103,8 +103,8 @@ void Photons::rkdpStepRay(size_t i) {
 			dr[i] = k7.dr; 
 			dtheta[i] = k7.dtheta;
 			dphi[i] = k7.dphi;
-			//dr[i] *= (2 * (abs(dr[i]) >= 1e-14) - 1);
-			//dtheta[i] *= (2 * (abs(dtheta[i]) >= 1e-14) - 1);
+			dr[i] *= (2 * (abs(dr[i]) >= 1e-14) - 1);
+			dtheta[i] *= (2 * (abs(dtheta[i]) >= 1e-14) - 1);
 			sign_r[i] *= (2 * (abs(dr[i]) >= 1e-14) - 1);
 			sign_theta[i] *= (2 * (abs(dtheta[i]) >= 1e-14) - 1);
 			r[i] += sign_r[i] * (abs(dr[i]) <= 1e-14) * dlambda[i];
@@ -120,9 +120,12 @@ void Photons::traceAllRays() {
 	#pragma omp parallel for schedule(dynamic, 16)
 	for (int i = 0; i < count; ++i) {
 		for (size_t steps = 0; steps < MAX_STEPS; ++steps) {
-			//std::cout << "r theta phi = (" << r[0] << ", " << theta[0] << ", " << phi[0] << ") \n";
-			//std::cout << "phi = " << phi[304] << " dr = " << dphi[304] << "\n";
-			//std::cout << "dr dtheta dphi = (" << dr[0] << ", " << dtheta[0] << ", " << dphi[0] << ") \n";
+			//constexpr size_t debugIdx = 599 + (600 * 200);
+			//if (i == debugIdx) {
+			//	std::cout << "r theta phi = (" << r[debugIdx] << ", " << theta[debugIdx] << ", " << phi[debugIdx] << ") \n";
+			//	//std::cout << "phi = " << phi[304] << " dr = " << dphi[304] << "\n";
+			//	std::cout << "dr dtheta dphi = (" << dr[debugIdx] << ", " << dtheta[debugIdx] << ", " << dphi[debugIdx] << ") \n";
+			//}
 			if (r[i] >= r_sky) {
 				state[i] = PhotonState::Escaped;
 				break;
