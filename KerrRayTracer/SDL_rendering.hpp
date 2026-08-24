@@ -10,13 +10,11 @@
 #include <cmath>
 #include <omp.h>
 
-constexpr double MAX_TEMP = 5000.0; //kelvin
-
 size_t SKY_WIDTH = 0;
 size_t SKY_HEIGHT = 0;
 
 std::vector<uint32_t> unpackSkyField(size_t& outWidth, size_t& outHeight) {
-    SDL_Surface* rawSurface = IMG_Load("resources/Milky_Way_360.png");
+    SDL_Surface* rawSurface = IMG_Load("resources/lassalle_panorama.jpg");
     if (rawSurface == nullptr) {
         std::cerr << "couldn't load image: " << SDL_GetError() << "\n";
     }
@@ -157,10 +155,11 @@ uint32_t getAccretionColour(double r, double xi) {
 }
 
 uint32_t sampleSkyField(double theta, double phi) {
+    phi = std::fmod(phi, TWO_PI) + TWO_PI * (phi <= 1e-14);
     double u = std::clamp((phi / TWO_PI), 0.0, 1.0);
     double v = std::clamp(theta / PI, 0.0, 1.0);
     size_t x = std::clamp((size_t)(u * SKY_WIDTH), 0ull, SKY_WIDTH - 1);
-    size_t y = std::clamp((size_t)(v * SKY_HEIGHT), 0ull, SKY_HEIGHT - 1);
+    size_t y = SKY_HEIGHT - 1 - std::clamp((size_t)(v * SKY_HEIGHT), 0ull, SKY_HEIGHT - 1);
     return skyPixels[x + SKY_WIDTH * y];
 }
 

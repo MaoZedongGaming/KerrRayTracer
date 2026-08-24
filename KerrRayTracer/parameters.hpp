@@ -21,6 +21,10 @@ constexpr double r_sky = 40.0; // skybox radius from the centre
 
 constexpr double r_acceretion = 20.0; // maximal radius of acceretion disk
 
+
+constexpr double MAX_TEMP = 4000.0; //kelvin
+
+
 namespace {
 	double calculateOuterHorizon() {
 		return 1.0 + sqrt(1.0 - a * a);

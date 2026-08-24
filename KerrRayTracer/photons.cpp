@@ -7,7 +7,7 @@
 #include <omp.h>
 
 double accretionThickness(double r) {
-	constexpr double H0 = 1.0;
+	constexpr double H0 = 0.02;
 	return H0 * pow((r / r_ISCO), 1.2);
 }
 
@@ -99,7 +99,7 @@ void Photons::rkdpStepRay(size_t i) {
 			r[i] = std::max(next_r, 0.0);
 			theta[i] = std::clamp(next_theta, 1e-14, PI - 1e-14);
 			phi[i] += dlambda[i] * (35.0 / 384.0 * dphi[i] + 500.0 / 1113.0 * k3.dphi + 125.0 / 192.0 * k4.dphi + -2187.0 / 6784.0 * k5.dphi + 11.0 / 84.0 * k6.dphi);
-			phi[i] = std::clamp(phi[i], 0.0, TWO_PI);
+			//phi[i] = std::clamp(phi[i], 0.0, TWO_PI);
 			dr[i] = k7.dr; 
 			dtheta[i] = k7.dtheta;
 			dphi[i] = k7.dphi;
@@ -121,18 +121,15 @@ void Photons::traceAllRays() {
 	for (int i = 0; i < count; ++i) {
 		for (size_t steps = 0; steps < MAX_STEPS; ++steps) {
 			//std::cout << "r theta phi = (" << r[0] << ", " << theta[0] << ", " << phi[0] << ") \n";
+			//std::cout << "phi = " << phi[304] << " dr = " << dphi[304] << "\n";
 			//std::cout << "dr dtheta dphi = (" << dr[0] << ", " << dtheta[0] << ", " << dphi[0] << ") \n";
 			if (r[i] >= r_sky) {
 				state[i] = PhotonState::Escaped;
 				break;
-				//std::cout << "escaped! \n";
-				// sample from skybox texture, this works
 			}
 			if (r[i] <= r_horizon + 0.01) {
 				state[i] = PhotonState::Captured;
 				break;
-				//std::cout << "captured! \n";
-				// black pixel
 			}
 
 			double oldTheta = theta[i];

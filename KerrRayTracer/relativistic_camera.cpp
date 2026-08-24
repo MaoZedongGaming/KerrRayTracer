@@ -87,7 +87,7 @@ void RelativisticCamera::generatePhotons() {
 		int y = i / (int) width;
 
 		// standard raytracing projection equation, first term puts (x, y) in centre of coordinates, second term applies the proper fov, x gets scaled by aspect ratio
-		double screenX = (2.0 * x / (double)width - 1.0) * tan(fov / 2.0) * (width / (double)height);
+		double screenX = (2.0 * x / (double)width - 1.0) * tan(fov / 2.0) * ((double)width / (double)height);
 		double screenY = (1.0 - 2.0 * y / (double)height) * tan(fov / 2.0);
 
 		// momenta in the camera's tetrad frame, p_t = E = 1.0
