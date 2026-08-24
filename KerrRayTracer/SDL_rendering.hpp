@@ -117,7 +117,7 @@ std::vector<uint32_t> populateTemperature() {
 std::vector<uint32_t> temperatureLookup = populateTemperature();
 
 uint32_t temperatureToRGB(double t) {
-    return temperatureLookup[(size_t)std::min(t, 40000.0)];
+    return temperatureLookup[(size_t)std::clamp(t, 0.0, 40000.0)];
 }
 
 double keplerianAngularVelocity(double r) {
@@ -168,8 +168,8 @@ void drawScreen(RelativisticCamera& camera, SDL_Texture* streamTexture) {
     for (int photonIndex = 0; photonIndex < camera.width * camera.height; ++photonIndex) {
         switch (camera.photons.state[photonIndex]) {
         case PhotonState::Active:
-            camera.pixelBuffer[photonIndex] = packRGBA32(0, 255, 0);
-            break;
+           /* camera.pixelBuffer[photonIndex] = packRGBA32(0, 255, 0);
+            break;*/
         case PhotonState::Captured:
             camera.pixelBuffer[photonIndex] = packRGBA32(0, 0, 0);
             break;
