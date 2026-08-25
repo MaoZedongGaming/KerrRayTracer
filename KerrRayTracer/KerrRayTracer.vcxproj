@@ -160,7 +160,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="general_relativity.hpp" />
-    <ClInclude Include="length_scales.hpp" />
     <ClInclude Include="maths.hpp" />
     <ClInclude Include="parameters.hpp" />
     <ClInclude Include="photons.hpp" />
@@ -169,7 +168,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="general_relativity.cpp" />
-    <ClCompile Include="length_scales.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="photons.cpp" />
     <ClCompile Include="relativistic_camera.cpp" />

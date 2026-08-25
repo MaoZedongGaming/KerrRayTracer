@@ -24,9 +24,6 @@
     <ClInclude Include="maths.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="length_scales.hpp">
-      <Filter>Header Files\GR maths</Filter>
-    </ClInclude>
     <ClInclude Include="photons.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -44,9 +41,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="length_scales.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="general_relativity.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
