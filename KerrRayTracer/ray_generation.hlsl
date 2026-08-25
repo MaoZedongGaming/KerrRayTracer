@@ -45,7 +45,7 @@ float g_tphi(float r, float theta, float a) {
     float sinTh = sin(theta);
     float cosTh = cos(theta);
     float sigma = r2 + a * a * cosTh * cosTh;
-    return -(2.0f * a * r * sinTh * sinTh) / sigma;
+    return -(4.0f * a * r * sinTh * sinTh) / sigma;
 }
 
 float g_phiphi(float r, float theta, float a) {

@@ -175,7 +175,9 @@
     <ClCompile Include="relativistic_camera.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="ray_generation.hlsl" />
+    <None Include="ray_generation.hlsl">
+      <FileType>Document</FileType>
+    </None>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

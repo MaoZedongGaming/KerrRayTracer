@@ -1,6 +1,5 @@
 #include "photons.hpp"
 #include "parameters.hpp"
-#include "length_scales.hpp"
 #include <cmath>
 #include <algorithm>
 #include <iostream>
@@ -44,12 +43,13 @@ PhotonDerivative evaluate(double r, double theta, float sign_r, float sign_theta
 	double r2 = r * r;
 	double a2 = a * a;
 	double cosTh = cos(theta);
+	double cos2 = cosTh * cosTh;
 	double sinTh = sin(theta);
 	double sin2 = sinTh * sinTh;
-	double delta = r2 - 2.0f * r + a2;
+	double delta = r2 - 2.0 * r + a2;
 	double P = r2 + a2 - a * xi;
 	double R = P * P - delta * (eta + (xi - a) * (xi - a));
-	double Theta = eta + a2 * cosTh * cosTh - xi * xi / sin2;
+	double Theta = eta + a2 * cos2 - xi * xi * cos2 / sin2;
 
 	double dr = sign_r * sqrt(std::max(R, 0.0));
 	double dtheta = sign_theta * sqrt(std::max(Theta, 0.0));

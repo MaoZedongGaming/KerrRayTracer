@@ -86,7 +86,7 @@ int main() {
 	ms_elapsed = SDL_GetTicks();
 	SDL_Log("finished drawing screen in %u ms!\n", ms_elapsed);
 
-	saveTextureToPNG(renderer, streamTexture, "aces_test3rgb.png");
+	saveTextureToPNG(renderer, streamTexture, "test_temps2.png");
 	/*
 	SDL_Event event;
 	while (running) {
