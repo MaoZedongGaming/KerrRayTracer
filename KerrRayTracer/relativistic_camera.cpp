@@ -8,27 +8,9 @@
 #include <omp.h>
 #include <cmath>
 
-Vector4d lowerContravariant(Vector4d const& v, double r, double theta) {
-	Vector4d res;
-	res[0] = g_tt(r, theta) * v[0] + g_tphi(r, theta) * v[3];
-	res[1] = g_rr(r, theta) * v[1];
-	res[2] = g_thth(r, theta) * v[2];
-	res[3] = g_tphi(r, theta) * v[0] + g_phiphi(r, theta) * v[3];
-	return res;
-}
-
-double length2(Vector4d const& v, double r, double theta) {
-	Vector4d v_lower = lowerContravariant(v, r, theta);
-	double res = 0.0;
-	for (size_t i = 0; i < 4; ++i)
-		res += v_lower[i] * v[i];
-	return res;
-}
-
 RelativisticCamera::RelativisticCamera(size_t w, size_t h) : width(w), height(h) {
 	photons.resize(w * h);
 	pixelBuffer.resize(w * h);
-	
 }
 
 void RelativisticCamera::setPosition(double r, double theta) {
@@ -48,14 +30,17 @@ void RelativisticCamera::initTetrad() {
 	double r = position[1];
 	double theta = position[2];
 
+	double g_tp = g_tphi(r, theta);
+	double g_pp = g_phiphi(r, theta);
+	double g_t = g_tt(r, theta);
 	
-	double omega = -g_tphi(r, theta) / g_phiphi(r, theta);
-	double alpha = std::sqrt((g_tphi(r, theta) * g_tphi(r, theta) / g_phiphi(r, theta)) - g_tt(r, theta));
+	double omega = -g_tp / g_pp;
+	double alpha = std::sqrt((g_tp * g_tp / g_pp) - g_t);
 
 	frame.e0 = Vector4d({ 1.0 / alpha, 0.0, 0.0, omega / alpha });
 	Vector4d e1 = Vector4d({ 0.0, 1.0 / std::sqrt(g_rr(r, theta)), 0.0, 0.0 });
 	Vector4d e2 = Vector4d({ 0.0, 0.0, 1.0 / std::sqrt(g_thth(r, theta)), 0.0 });
-	Vector4d e3 = Vector4d({ 0.0, 0.0, 0.0, 1.0 / std::sqrt(g_phiphi(r, theta)) });
+	Vector4d e3 = Vector4d({ 0.0, 0.0, 0.0, 1.0 / std::sqrt(g_pp) });
 
 	/*frame.e1 = e1;
 	frame.e2 = e2;

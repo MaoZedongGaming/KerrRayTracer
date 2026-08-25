@@ -69,7 +69,7 @@ int main() {
 	
 	RelativisticCamera camera(WIDTH, HEIGHT);
 	camera.setPosition(30.0, 1.5);
-	camera.pitch = 0.2;
+	//camera.yaw = PI_2;
 
 	camera.initTetrad();
 	SDL_Log("generating photons...\n");
@@ -87,7 +87,7 @@ int main() {
 	ms_elapsed = SDL_GetTicks();
 	SDL_Log("finished drawing screen in %u ms!\n", ms_elapsed);
 
-	saveTextureToPNG(renderer, streamTexture, "euler_angle_test2.png");
+	saveTextureToPNG(renderer, streamTexture, "cleanup_test.png");
 	/*
 	SDL_Event event;
 	while (running) {
