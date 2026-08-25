@@ -16,6 +16,9 @@
     <Filter Include="Header Files\GR maths">
       <UniqueIdentifier>{3a3a6cdc-b7fa-4755-96ea-8ca625ffacee}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\compute shaders">
+      <UniqueIdentifier>{867b0848-4705-41b7-b981-6dcfabe71534}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="maths.hpp">
@@ -56,5 +59,10 @@
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="ray_generation.hlsl">
+      <Filter>Header Files\compute shaders</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

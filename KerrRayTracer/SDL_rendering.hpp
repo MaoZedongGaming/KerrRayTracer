@@ -136,8 +136,18 @@ double observedTemperature(double r, double xi) {
 	return g_factor(r, xi) * novikovThorneTemperature(r);
 }
 
+double applyReinhard(double x) {
+    return x / (1.0 + x);
+}
+
+double applyACES(double x) {
+    return x * (2.51 * x + 0.03) / (x * (2.43 * x + 0.59) + 0.14);
+}
+
 uint32_t relativisticBeaming(double r, double xi, uint32_t colour) {
     double intensity = pow(g_factor(r, xi), 4.0);
+    //double reinhard_intensity = intensity / (1.0 + intensity);  // looks hideous
+    //double ACES_intensity = intensity * (2.51 * intensity + 0.03) / (intensity * (2.43 * intensity + 0.59) + 0.14);  // both look pretty bad
     uint8_t r0 = getRed(colour);
     uint8_t g = getGreen(colour);
     uint8_t b = getBlue(colour);

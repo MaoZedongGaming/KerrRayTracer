@@ -41,12 +41,19 @@ void Photons::resize(size_t i) {
 }
 
 PhotonDerivative evaluate(double r, double theta, float sign_r, float sign_theta, double xi, double eta) {
-	double P = r * r + a * a - a * xi;
-	double R = P * P - delta(r) * (eta + (xi - a) * (xi - a));
-	double Theta = eta + a * a * cos(theta) * cos(theta) - xi * xi / (tan(theta) * tan(theta));
+	double r2 = r * r;
+	double a2 = a * a;
+	double cosTh = cos(theta);
+	double sinTh = sin(theta);
+	double sin2 = sinTh * sinTh;
+	double delta = r2 - 2.0f * r + a2;
+	double P = r2 + a2 - a * xi;
+	double R = P * P - delta * (eta + (xi - a) * (xi - a));
+	double Theta = eta + a2 * cosTh * cosTh - xi * xi / sin2;
+
 	double dr = sign_r * sqrt(std::max(R, 0.0));
 	double dtheta = sign_theta * sqrt(std::max(Theta, 0.0));
-	double dphi = -(a - xi / (sin(theta) * sin(theta))) + P * a / delta(r);
+	double dphi = -(a - xi / sin2) + P * a / delta;
 
 	return PhotonDerivative{ dr, dtheta, dphi };
 }
