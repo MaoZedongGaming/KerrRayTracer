@@ -8,6 +8,14 @@
 #include <omp.h>
 #include <cmath>
 
+void RelativisticCamera::turnLeft(double y) {
+	yaw += y;
+}
+
+void RelativisticCamera::turnDown(double p) {
+	pitch += p;
+}
+
 RelativisticCamera::RelativisticCamera(size_t w, size_t h) : width(w), height(h) {
 	photons.resize(w * h);
 	pixelBuffer.resize(w * h);
@@ -42,19 +50,11 @@ void RelativisticCamera::initTetrad() {
 	Vector4d e2 = Vector4d({ 0.0, 0.0, 1.0 / std::sqrt(g_thth(r, theta)), 0.0 });
 	Vector4d e3 = Vector4d({ 0.0, 0.0, 0.0, 1.0 / std::sqrt(g_pp) });
 
-	/*frame.e1 = e1;
-	frame.e2 = e2;
-	frame.e3 = e3;*/
-
 	double cy = cos(yaw), cp = cos(pitch), sy = sin(yaw), sp = sin(pitch);
 
 	frame.e1 = (cy * cp) * e1 - (cy * sp) * e2 + sy * e3;
 	frame.e2 = sp * e1 + cp * e2;
 	frame.e3 = -(sy * cp) * e1 + (sp * sy) * e2 + cy * e3;
-
-	/*frame.e1 = (sp * cy) * e1 + (sp * sy) * e2 + cp * e3;
-	frame.e2 = (cp * cy) * e1 + (cp * sy) * e2 - sp * e3;
-	frame.e3 = -sy * e1 + cy * e2;*/
 }
 
 
@@ -75,8 +75,11 @@ void RelativisticCamera::generatePhotons() {
 
 		// standard raytracing projection equation, first term puts (x, y) in centre of coordinates, second term applies the proper fov, x gets scaled by aspect ratio
 		// must add 0.5 to offset integer screen coordinates because the constants are calculated wrong when x or y = 0 
-		double screenX = (2.0 * ((double)x + 0.5) / (double)width - 1.0) * tan(fov / 2.0) * ((double)width / (double)height);
-		double screenY = (1.0 - 2.0 * ((double)y + 0.5) / (double)height) * tan(fov / 2.0);
+		double aspectRatio = (double)width / (double)height;
+		double tanHalfFov = tan(fov / 2.0);
+
+		double screenX = (2.0 * ((double)x + 0.5) / (double)width - 1.0) * tanHalfFov * aspectRatio;
+		double screenY = (1.0 - 2.0 * ((double)y + 0.5) / (double)height) * tanHalfFov;
 
 		// momenta in the camera's tetrad frame, p_t = E = 1.0
 		double p_1 = 1.0 / sqrt(1.0 + screenX * screenX + screenY * screenY); // x is the forward coordinate in this instance
@@ -85,13 +88,20 @@ void RelativisticCamera::generatePhotons() {
 
 		// \eta^{\mu \nu} p_\mu = -(1.0)^2 + |p_i|^2 =  -1.0 + 1.0 = 0 so it's a proper lightlike 4 vector
 
-		// momentum projected onto global coordinates
+		// momentum projected onto global coordinates, REMEMBER TO FLIP p_1 BECAUSE BL COORDINATES POIMT AWAY FROM THE CENTRE!!!, flip p_2 too because e_theta points downwards
 		Vector4d p = frame.e0 + -p_1 * frame.e1 + -p_2 * frame.e2 + p_3 * frame.e3;
 
+		double g_tp = g_tphi(r, theta);
+		double g_pp = g_phiphi(r, theta);
+		double g_t = g_tt(r, theta);
+		double g_tt = g_thth(r, theta);
+		double sinTh = sin(theta);
+		double cosTh = cos(theta);
+
 		// conserved covariant constants
-		double E = -(p[0] * g_tt(r, theta) + p[3] * g_tphi(r, theta)); // -p_t
-		double L_z = p[3] * g_phiphi(r, theta) + p[0] * g_tphi(r, theta);  // p_phi
-		double Q = p[2] * p[2] * g_thth(r, theta) * g_thth(r, theta) + cos(theta) * cos(theta) * (a * a * (-E * E) + (L_z * L_z) / (sin(theta) * sin(theta)));  // carter's constant
+		double E = -(p[0] * g_t + p[3] * g_tp); // -p_t
+		double L_z = p[3] * g_pp + p[0] * g_tp;  // p_phi
+		double Q = p[2] * p[2] * g_tt * g_tt + cosTh * cosTh * (a * a * (-E * E) + (L_z * L_z) / (sinTh * sinTh));  // carter's constant
 
 
 		photons.sign_r[i] = (p[1] >= 0.0) ? 1.0f : -1.0f;

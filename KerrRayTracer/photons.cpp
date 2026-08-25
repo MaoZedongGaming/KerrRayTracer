@@ -1,5 +1,6 @@
 #include "photons.hpp"
 #include "parameters.hpp"
+#include "config.hpp"
 #include <cmath>
 #include <algorithm>
 #include <iostream>
@@ -106,7 +107,7 @@ void Photons::rkdpStepRay(size_t i) {
 			r[i] = std::max(next_r, 0.0);
 			theta[i] = std::clamp(next_theta, 1e-14, PI - 1e-14);
 			phi[i] += dlambda[i] * (35.0 / 384.0 * dphi[i] + 500.0 / 1113.0 * k3.dphi + 125.0 / 192.0 * k4.dphi + -2187.0 / 6784.0 * k5.dphi + 11.0 / 84.0 * k6.dphi);
-			//phi[i] = std::clamp(phi[i], 0.0, TWO_PI);
+			//phi[i] = std::clamp(phi[i], 0.0, TWO_PI); // do this to get the cool wavy glitched skyfield look
 			dr[i] = k7.dr; 
 			dtheta[i] = k7.dtheta;
 			dphi[i] = k7.dphi;
@@ -145,12 +146,13 @@ void Photons::traceAllRays() {
 			double oldTheta = theta[i];
 			rkdpStepRay(i);
 			
-			//if (intersectAccretionDisk(r[i], theta[i])) {
-			if (intersectAccretionDisk(r[i], oldTheta, theta[i])) {
-				state[i] = PhotonState::AccretionDiskHit;
-				break;
-				//std::cout << "Hit AccretionDisk! \n";
-				// accretion disk sampler algorithm
+			if constexpr (ENABLE_ACCRETION_DISK) {
+				//if (intersectAccretionDisk(r[i], theta[i])) {
+				if (intersectAccretionDisk(r[i], oldTheta, theta[i])) {
+					state[i] = PhotonState::AccretionDiskHit;
+					break;
+					// accretion disk sampler algorithm
+				}
 			}
 		}
 	}

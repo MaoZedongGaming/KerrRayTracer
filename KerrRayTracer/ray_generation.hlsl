@@ -86,9 +86,14 @@ void CSMain(uint3 id : SV_DispatchThreadID) {
     if (id.x >= CameraData.width || id.y >= CameraData.height) {
         return;
     }
+    
     uint photonIdx = id.x + id.y * CameraData.width;
-    float screenX = (2.0f * ((float) id.x + 0.5f) / (float) CameraData.width - 1.0f) * tan(CameraData.fov / 2.0f) * ((float) CameraData.width / (float) CameraData.height);
-    float screenY = (1.0f - 2.0f * ((float) id.y + 0.5f) / (float) CameraData.height) * tan(CameraData.fov / 2.0f);
+    
+    float aspectRatio = (float) CameraData.width / (float) CameraData.height;
+    float tanHalfFov = tan(CameraData.fov / 2.0f);
+    
+    float screenX = (2.0f * ((float) id.x + 0.5f) / (float) CameraData.width - 1.0f) * tanHalfFov * aspectRatio;
+    float screenY = (1.0f - 2.0f * ((float) id.y + 0.5f) / (float) CameraData.height) * tanHalfFov;
     
     float a = CameraData.a;
     float r = CameraData.pos[1];

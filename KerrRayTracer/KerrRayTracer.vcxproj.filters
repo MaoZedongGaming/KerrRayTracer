@@ -39,6 +39,9 @@
     <ClInclude Include="SDL_rendering.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="config.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="general_relativity.cpp">
@@ -55,8 +58,8 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="ray_generation.hlsl">
+    <FxCompile Include="ray_generation.hlsl">
       <Filter>Header Files\compute shaders</Filter>
-    </None>
+    </FxCompile>
   </ItemGroup>
 </Project>

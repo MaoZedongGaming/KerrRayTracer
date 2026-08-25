@@ -2,6 +2,7 @@
 #include "parameters.hpp"
 #include "general_relativity.hpp"
 #include "relativistic_camera.hpp"
+#include "config.hpp"
 #include "SDL3/SDL_pixels.h"
 #include "SDL3_image/SDL_image.h"
 #include <algorithm>
@@ -160,7 +161,9 @@ uint32_t relativisticBeaming(double r, double xi, uint32_t colour) {
 uint32_t getAccretionColour(double r, double xi) {
     uint32_t colour = packRGBA32(0, 0, 0);
     colour = temperatureToRGB(observedTemperature(r, xi));
-    colour = relativisticBeaming(r, xi, colour);
+    if constexpr (ENABLE_DOPPLER_BEAMING) {
+        colour = relativisticBeaming(r, xi, colour);
+    }
     return colour;
 }
 
@@ -178,8 +181,10 @@ void drawScreen(RelativisticCamera& camera, SDL_Texture* streamTexture) {
     for (int photonIndex = 0; photonIndex < camera.width * camera.height; ++photonIndex) {
         switch (camera.photons.state[photonIndex]) {
         case PhotonState::Active:
-           /* camera.pixelBuffer[photonIndex] = packRGBA32(0, 255, 0);
-            break;*/
+            if constexpr (PIXEL_DEBUG) {
+                 camera.pixelBuffer[photonIndex] = packRGBA32(255, 0, 255);
+                 break;
+            }
         case PhotonState::Captured:
             camera.pixelBuffer[photonIndex] = packRGBA32(0, 0, 0);
             break;

@@ -25,12 +25,14 @@ public:
 	size_t width;
 	size_t height;
 
-	double pitch = 0.0f; // camera pitch in degrees
-	double yaw = 0.0f; // camera yaw in degrees
+	double pitch = 0.0; // camera pitch in degrees
+	double yaw = 0.0; // camera yaw in degrees
 
 	void initTetrad();
 	void setPosition(double r, double theta);
 	void generatePhotons();
+	void turnLeft(double y);
+	void turnDown(double p);
 
 	RelativisticCamera(size_t w, size_t h);
 };
