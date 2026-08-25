@@ -15,7 +15,7 @@ constexpr int sgn(double x) {
 	return ((x > 1e-14) - (1e-14 > x));
 }
 
-constexpr double a = 0.0;
+constexpr double a = 0.6;
 
 constexpr double r_sky = 40.0; // skybox radius from the centre
 

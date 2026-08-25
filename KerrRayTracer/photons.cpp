@@ -111,8 +111,6 @@ void Photons::rkdpStepRay(size_t i) {
 			dr[i] = k7.dr; 
 			dtheta[i] = k7.dtheta;
 			dphi[i] = k7.dphi;
-			dr[i] *= (2 * (abs(dr[i]) >= 1e-14) - 1);
-			dtheta[i] *= (2 * (abs(dtheta[i]) >= 1e-14) - 1);
 			sign_r[i] *= (2 * (abs(dr[i]) >= 1e-14) - 1);
 			sign_theta[i] *= (2 * (abs(dtheta[i]) >= 1e-14) - 1);
 			r[i] += sign_r[i] * (abs(dr[i]) <= 1e-14) * dlambda[i];
@@ -120,6 +118,44 @@ void Photons::rkdpStepRay(size_t i) {
 			break;
 		}
 	}
+}
+
+void Photons::adaptiveRK4StepRay(size_t i) {
+	PhotonDerivative k1, k2, k3, k4;
+	//double dlambda = 0.1 * std::log10(r_horizon - 1.01);
+	double dlambda = std::min(0.001, 0.0001 * (r[i] - r_horizon));// *(r[i] - r_horizon + 0.05);
+
+	k1 = evaluate(r[i], theta[i], sign_r[i], sign_theta[i], xi[i], eta[i]);
+	double r_stage = r[i] + k1.dr * (dlambda / 2.0);
+	double theta_stage = theta[i] + k1.dtheta * (dlambda / 2.0);
+
+	k2 = evaluate(r_stage, theta_stage, sign_r[i], sign_theta[i], xi[i], eta[i]);
+	r_stage = r[i] + k2.dr * (dlambda / 2.0);
+	theta_stage = theta[i] + k2.dtheta * (dlambda / 2.0);
+
+	k3 = evaluate(r_stage, theta_stage, sign_r[i], sign_theta[i], xi[i], eta[i]);
+	r_stage = r[i] + k3.dr * dlambda;
+	theta_stage = theta[i] + k3.dtheta * dlambda;
+
+	k4 = evaluate(r_stage, theta_stage, sign_r[i], sign_theta[i], xi[i], eta[i]);
+
+	double next_r = r[i] + dlambda / 6.0 * (k1.dr + 2.0 * k2.dr + 2.0 * k3.dr + k4.dr);
+	double next_theta = theta[i] + dlambda / 6.0 * (k1.dtheta + 2.0 * k2.dtheta + 2.0 * k3.dtheta + k4.dtheta);
+
+	r[i] = std::max(next_r, 0.0);
+	theta[i] = std::clamp(next_theta, 1e-14, PI - 1e-14);
+	phi[i] += dlambda / 6.0 * (k1.dphi + 2.0 * k2.dphi + 2.0 * k3.dphi + k4.dphi);
+
+	double next_P = r[i] * r[i] + a * a - a * xi[i];
+	double delta = r[i] * r[i] - 2.0 * r[i] + a * a;
+	double next_R = next_P * next_P - delta * (eta[i] + (xi[i] - a) * (xi[i] - a));
+	double cosTh = cos(theta[i]);
+	double sinTh = sin(theta[i]);
+	double next_Theta = eta[i] + a * a * cosTh * cosTh - xi[i] * xi[i] * cosTh * cosTh / (sinTh * sinTh);
+	sign_r[i] *= (2 * (next_R >= 1e-14) - 1);
+	sign_theta[i] *= (2 * (next_Theta >= 1e-14) - 1);
+	r[i] += sign_r[i] * (next_R <= 1e-14) * dlambda;
+	theta[i] += sign_theta[i] * (next_Theta <= 1e-14) * dlambda;
 }
 
 void Photons::traceAllRays() {
@@ -144,7 +180,15 @@ void Photons::traceAllRays() {
 			}
 
 			double oldTheta = theta[i];
-			rkdpStepRay(i);
+
+			if constexpr (RKDP_INTEGRATION) {
+				rkdpStepRay(i);
+			}
+
+			if constexpr (RK4_INTEGRATION) {
+				adaptiveRK4StepRay(i);
+			}
+
 			
 			if constexpr (ENABLE_ACCRETION_DISK) {
 				//if (intersectAccretionDisk(r[i], theta[i])) {
