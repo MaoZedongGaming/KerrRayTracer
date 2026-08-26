@@ -57,5 +57,6 @@ struct Photons {
 	// adaptive RKDP, mino time, impact constants, affine parameter starts at 0.01
 	void rkdpStepRay(size_t i);
 	void adaptiveRK4StepRay(size_t i);
+	void adaptiveRK5StepRay(size_t i);
 	void traceAllRays();
 };
