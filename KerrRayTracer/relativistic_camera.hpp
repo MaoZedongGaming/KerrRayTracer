@@ -29,7 +29,7 @@ public:
 	double yaw = 0.0; // camera yaw in degrees
 
 	void initTetrad();
-	void setPosition(double r, double theta);
+	void setPosition(double r, double theta, double phi = 0.0);
 	void generatePhotons();
 	void turnLeft(double y);
 	void turnDown(double p);

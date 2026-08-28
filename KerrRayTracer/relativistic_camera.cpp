@@ -21,11 +21,11 @@ RelativisticCamera::RelativisticCamera(size_t w, size_t h) : width(w), height(h)
 	pixelBuffer.resize(w * h);
 }
 
-void RelativisticCamera::setPosition(double r, double theta) {
+void RelativisticCamera::setPosition(double r, double theta, double phi) {
 	position[0] = 0;
 	position[1] = r;
 	position[2] = std::clamp(theta, 0.01, PI - 0.01);
-	position[3] = 0;
+	position[3] = phi;
 
 	velocity[0] = 1.0;
 	velocity[1] = 0;
@@ -69,6 +69,8 @@ void RelativisticCamera::generatePhotons() {
 		photons.phi[i] = position[3];
 		photons.state[i] = PhotonState::Active;
 		photons.dlambda[i] = 0.1;
+		photons.accumulatedColour[i] = { 0.0f, 0.0f, 0.0f };
+		photons.transmittance[i] = 1.0f;
 
 		int x = i % width;
 		int y = i / (int) width;

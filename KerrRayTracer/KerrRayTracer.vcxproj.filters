@@ -19,27 +19,36 @@
     <Filter Include="Header Files\compute shaders">
       <UniqueIdentifier>{867b0848-4705-41b7-b981-6dcfabe71534}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\raymarching stuff">
+      <UniqueIdentifier>{a9422239-451d-40f3-a7d1-be1b6d65c069}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="maths.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="photons.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="relativistic_camera.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="general_relativity.hpp">
       <Filter>Header Files\GR maths</Filter>
     </ClInclude>
-    <ClInclude Include="parameters.hpp">
-      <Filter>Header Files\GR maths</Filter>
-    </ClInclude>
     <ClInclude Include="SDL_rendering.hpp">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\raymarching stuff</Filter>
+    </ClInclude>
+    <ClInclude Include="rendering_maths.hpp">
+      <Filter>Header Files\raymarching stuff</Filter>
     </ClInclude>
     <ClInclude Include="config.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="maths.hpp">
+      <Filter>Header Files\GR maths</Filter>
+    </ClInclude>
+    <ClInclude Include="photons.hpp">
+      <Filter>Header Files\GR maths</Filter>
+    </ClInclude>
+    <ClInclude Include="relativistic_camera.hpp">
+      <Filter>Header Files\GR maths</Filter>
+    </ClInclude>
+    <ClInclude Include="parameters.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rendering_physics.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -58,8 +67,8 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="ray_generation.hlsl">
+    <CustomBuild Include="ray_generation.hlsl">
       <Filter>Header Files\compute shaders</Filter>
-    </FxCompile>
+    </CustomBuild>
   </ItemGroup>
 </Project>

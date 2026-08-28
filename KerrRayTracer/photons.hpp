@@ -1,10 +1,18 @@
 #pragma once
 #include <vector>
+#include <array>
 
 //Vector4d is too AoS for raytracing, we need SoA for better cache performance
 
+
+// RAYTRACING PIPELINE:
 // pipeline is relativistic camera tetrad -> shoot photons in camera frame according to the camera's orientation where E = 1 -> project photon local coordinates to global Boyer-Lindquist coordinates -> RKDP integrate first order carter equations -> check if photon escapes, is captured, or hits accretion disk
 // escape = sample skybox pixel, capture = photon crosses event horizon = black pixel, accretion disk hit = photon crosses equatorial plane at r > r_isco = sample accretion disk texture pixel + doppler shift + gravitational redshift
+
+// RAYMARCHING PIPELINE:
+// each photon holds a float3 of colour luminance and integrates the whole way around until hitting the skybox, only terminating early if it runs out of transmittance or hitting the outer horizon (turn off outer horizon for future experiments)
+
+using float3 = std::array<float, 3>;
 
 enum class PhotonState : uint8_t {
 	Active = 0,
@@ -31,6 +39,7 @@ struct Photons {
 	std::vector <double> phi;
 
 	// you usually don't need to store or cache the momenta but this is the k1 necessaary for RKDP's FSAL, new k1 = old k7, also they must be evaluated as carter's equations and not the initial condition direction vector
+	// inclusion in hlsl depends on whether there's a worthwhile FSAL adaptive method or if any function actually needs the photon's 4 momenta
 	std::vector <double> dr;
 	std::vector <double> dtheta;
 	std::vector <double> dphi;
@@ -47,7 +56,10 @@ struct Photons {
 	//std::vector <size_t> activeIndices; 
 
 	std::vector <double> dlambda;  // per photon adaptative time step
-	// would using add a k1 array for FSAL in RKDP but that would be bad for the GPU
+
+	// ray marching stuff
+	std::vector <float3> accumulatedColour;
+	std::vector <float> transmittance;
 
 	size_t count = 0;
 

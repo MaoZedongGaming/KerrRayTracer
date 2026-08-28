@@ -4,41 +4,6 @@
 #include <iostream>
 #include <omp.h>
 
-bool saveTextureToPNG(SDL_Renderer* renderer, SDL_Texture* texture, const char* filename) {
-	// 1. Save current render target to restore it later
-	SDL_Texture* previous_target = SDL_GetRenderTarget(renderer);
-
-	// 2. Set target to the texture we want to read
-	if (!SDL_SetRenderTarget(renderer, texture)) {
-		return false;
-	}
-
-	// 3. Get texture dimensions
-	float w, h;
-	if (!SDL_GetTextureSize(texture, &w, &h)) {
-		SDL_SetRenderTarget(renderer, previous_target);
-		return false;
-	}
-
-	SDL_Rect rect = { 0, 0, (int)w, (int)h };
-
-	// 4. Read pixels into a new SDL3 surface (SDL_RenderReadPixels returns an SDL_Surface* in SDL3)
-	SDL_Surface* surface = SDL_RenderReadPixels(renderer, &rect);
-	if (!surface) {
-		SDL_SetRenderTarget(renderer, previous_target);
-		return false;
-	}
-
-	// 5. Save image to file (using SDL_SaveBMP or IMG_SavePNG from SDL_image)
-	bool success = IMG_SavePNG(surface, filename); // Or SDL_SaveBMP(surface, filename);
-
-	// 6. Clean up
-	SDL_DestroySurface(surface);
-	SDL_SetRenderTarget(renderer, previous_target);
-
-	return success;
-}
-
 int main() {
 
     #pragma omp parallel
@@ -46,8 +11,8 @@ int main() {
     #pragma omp single
 		std::cout << "Running with " << omp_get_num_threads() << " thread(s)\n";
 	}
-	constexpr int WIDTH = 800;
-	constexpr int HEIGHT = 600;
+	constexpr int WIDTH = 600;
+	constexpr int HEIGHT = 400;
 
 	SDL_Init(SDL_INIT_VIDEO);
 
@@ -85,7 +50,7 @@ int main() {
 	ms_elapsed = SDL_GetTicks();
 	SDL_Log("finished drawing screen in %u ms!\n", ms_elapsed);
 
-	saveTextureToPNG(renderer, streamTexture, "RKDP_fixed_test.png");
+	saveTextureToPNG(renderer, streamTexture, "disk_marching_test.png");
 	/*
 	SDL_Event event;
 	while (running) {

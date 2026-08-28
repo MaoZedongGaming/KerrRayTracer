@@ -17,17 +17,12 @@ struct InitialPhoton {
     float r;
     float theta;
     float phi;
-    float dr;
+    float sign_r;
     
-    float dtheta;
-    float dphi;
+    float sign_theta;
     float xi;
     float eta;
-    
-    float sign_r;
-    float sign_theta;
     uint state;
-    float dlambda;
 };
 
 ConstantBuffer<CameraConstants> CameraData : register(b0);
@@ -62,22 +57,6 @@ float g_thth(float r, float theta, float a) {
     float r2 = r * r;
     float cosTh = cos(theta);
     return r2 + a * a * cosTh * cosTh;
-}
-
-void evaluateInitialDerivatives(float r, float theta, float sign_r, float sign_theta, float xi, float eta, float a, out float dr, out float dtheta, out float dphi) {
-    float r2 = r * r;
-    float a2 = a * a;
-    float cosTh = cos(theta);
-    float sinTh = sin(theta);
-    float sin2 = sinTh * sinTh;
-    float delta = r2 - 2.0f * r + a2;
-    float P = r2 + a2 - a * xi;
-    float R = P * P - delta * (eta + (xi - a) * (xi - a));
-    float Theta = eta + a2 * cosTh * cosTh - xi * xi / (sin2);
-    
-    dr = sign_r * sqrt(max(R, 0.0f));
-    dtheta = sign_theta * sqrt(max(Theta, 0.0f));
-    dphi = -(a - xi / sin2) + P * a / delta;
 }
 
 
@@ -123,22 +102,15 @@ void CSMain(uint3 id : SV_DispatchThreadID) {
     float sign_r = (p.y >= 0.0f) ? 1.0f : -1.0f;
     float sign_theta = (p.z >= 0.0f) ? 1.0f : -1.0f;
 
-    float dr, dtheta, dphi;
-    evaluateInitialDerivatives(r, theta, sign_r, sign_theta, xi, eta, a, dr, dtheta, dphi);
-
     InitialPhoton photon;
     photon.r = r;
     photon.theta = theta;
     photon.phi = phi;
-    photon.dr = dr;
-    photon.dtheta = dtheta;
-    photon.dphi = dphi;
     photon.xi = xi;
     photon.eta = eta;
     photon.sign_r = sign_r;
     photon.sign_theta = sign_theta;
     photon.state = 0; // 0 = Active
-    photon.dlambda = 0.1f; // Initial adaptive step guess
 
     PhotonData[photonIdx] = photon;
 }

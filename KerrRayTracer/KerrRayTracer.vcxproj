@@ -165,6 +165,8 @@
     <ClInclude Include="parameters.hpp" />
     <ClInclude Include="photons.hpp" />
     <ClInclude Include="relativistic_camera.hpp" />
+    <ClInclude Include="rendering_maths.hpp" />
+    <ClInclude Include="rendering_physics.hpp" />
     <ClInclude Include="SDL_rendering.hpp" />
   </ItemGroup>
   <ItemGroup>
@@ -174,13 +176,25 @@
     <ClCompile Include="relativistic_camera.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="ray_generation.hlsl">
+    <CustomBuild Include="ray_generation.hlsl">
       <FileType>Document</FileType>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </FxCompile>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">dxc.exe -T vs_6_0 -E main -spirv identity.hlsl -Fo identity.spv
+shadercross identity.spv -o identity.dxil</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">dxc.exe -T vs_6_0 -E main -spirv identity.hlsl -Fo identity.spv
+shadercross identity.spv -o identity.dxil</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">dxc.exe -T vs_6_0 -E main -spirv identity.hlsl -Fo identity.spv
+shadercross identity.spv -o identity.dxil</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">dxc.exe -T vs_6_0 -E main -spirv identity.hlsl -Fo identity.spv
+shadercross identity.spv -o identity.dxil</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">identity.spv;identity.dxil;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">identity.spv;identity.dxil;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">identity.spv;identity.dxil;%(Outputs)</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">identity.spv;identity.dxil;%(Outputs)</Outputs>
+    </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
