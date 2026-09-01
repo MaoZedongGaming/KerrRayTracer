@@ -48,8 +48,8 @@
     <ClInclude Include="parameters.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="rendering_physics.hpp">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="disk_physics.hpp">
+      <Filter>Header Files\GR maths</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

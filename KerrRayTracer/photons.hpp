@@ -19,6 +19,7 @@ enum class PhotonState : uint8_t {
 	Escaped,
 	Captured,
 	AccretionDiskHit,
+	//AccretionGasHit,
 	PhotonSphere
 };
 

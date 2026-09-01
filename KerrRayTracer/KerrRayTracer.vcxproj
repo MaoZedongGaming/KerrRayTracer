@@ -166,7 +166,7 @@
     <ClInclude Include="photons.hpp" />
     <ClInclude Include="relativistic_camera.hpp" />
     <ClInclude Include="rendering_maths.hpp" />
-    <ClInclude Include="rendering_physics.hpp" />
+    <ClInclude Include="disk_physics.hpp" />
     <ClInclude Include="SDL_rendering.hpp" />
   </ItemGroup>
   <ItemGroup>

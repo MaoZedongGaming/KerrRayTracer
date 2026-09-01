@@ -32,7 +32,7 @@ int main() {
 	
 	RelativisticCamera camera(WIDTH, HEIGHT);
 	camera.setPosition(30.0, 1.5);
-	//camera.turnLeft(-0.2);
+	camera.turnLeft(0.1);
 
 	camera.initTetrad();
 	SDL_Log("generating photons...\n");
@@ -50,7 +50,7 @@ int main() {
 	ms_elapsed = SDL_GetTicks();
 	SDL_Log("finished drawing screen in %u ms!\n", ms_elapsed);
 
-	saveTextureToPNG(renderer, streamTexture, "disk_marching_test.png");
+	saveTextureToPNG(renderer, streamTexture, "marched_disk_test_8.png");
 	/*
 	SDL_Event event;
 	while (running) {

@@ -52,7 +52,7 @@ std::vector<uint32_t> skyPixels = unpackImage("resources/Milky_Way_360.png", SKY
 uint32_t sampleSkyField(double theta, double phi) {
     //phi = phi - TWO_PI * std::floor(phi / TWO_PI);
     phi = std::fmod(phi, TWO_PI);
-    phi += (phi < 0.0) * TWO_PI * std::floor(phi / TWO_PI);
+    phi += (phi <= 0.0) * TWO_PI;
     //phi = std::fmod(phi, PI) + PI;
     /*phi = std::fmod(phi, TWO_PI) + PI;
     phi += (phi < 0.0) * TWO_PI;*/
@@ -73,7 +73,7 @@ void drawScreen(RelativisticCamera& camera, SDL_Texture* streamTexture) {
                  break;
             }
         case PhotonState::Captured:
-            camera.pixelBuffer[photonIndex] = packRGBA32(0, 0, 0);
+            camera.pixelBuffer[photonIndex] = float3ToRGBA(camera.photons.accumulatedColour[photonIndex]);
             break;
         case PhotonState::Escaped:
             if constexpr (ENABLE_OPAQUE_DISK) {
@@ -87,11 +87,9 @@ void drawScreen(RelativisticCamera& camera, SDL_Texture* streamTexture) {
                 camera.pixelBuffer[photonIndex] = float3ToRGBA(float3{ r, g, b });
             }
             break;
-        /*case PhotonState::AccretionDiskHit:
-            if constexpr (ENABLE_OPAQUE_DISK) {
-                camera.pixelBuffer[photonIndex] = getAccretionColour(camera.photons.r[photonIndex], camera.photons.xi[photonIndex], camera.photons.phi[photonIndex], camera.position[0]);
-                break;
-            } */
+        case PhotonState::AccretionDiskHit:
+            camera.pixelBuffer[photonIndex] = float3ToRGBA(camera.photons.accumulatedColour[photonIndex]);
+            break;
         }
     }
 

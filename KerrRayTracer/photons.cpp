@@ -1,7 +1,7 @@
 #include "photons.hpp"
 #include "parameters.hpp"
 #include "config.hpp"
-#include "rendering_physics.hpp"
+#include "disk_physics.hpp"
 #include <cmath>
 #include <algorithm>
 #include <iostream>
@@ -156,6 +156,7 @@ void Photons::adaptiveRK4StepRay(size_t i) {
 	sign_theta[i] *= (2 * (abs(k4.dtheta) >= 1e-14) - 1);
 	r[i] += sign_r[i] * (abs(k4.dr) <= 1e-14) * dlambda;
 	theta[i] += sign_theta[i] * (abs(k4.dtheta) <= 1e-14) * dlambda;
+	this->dlambda[i] = dlambda;
 }
 
 void Photons::adaptiveRK5StepRay(size_t i) {
@@ -202,7 +203,7 @@ void Photons::adaptiveRK5StepRay(size_t i) {
 
 void Photons::traceAllRays() {
 	constexpr int MAX_STEPS = 40000;
-
+	constexpr float ABSORPTION_COEFF = 3000.0f;
 	#pragma omp parallel for schedule(dynamic, 16)
 	for (int i = 0; i < count; ++i) {
 		for (size_t steps = 0; steps < MAX_STEPS; ++steps) {
@@ -210,7 +211,7 @@ void Photons::traceAllRays() {
 			//if (i == debugIdx) {
 			//	std::cout << "r theta phi = (" << r[debugIdx] << ", " << theta[debugIdx] << ", " << phi[debugIdx] << ") \n";
 			//	//std::cout << "phi = " << phi[304] << " dr = " << dphi[304] << "\n";
-			//	std::cout << "dr dtheta dphi = (" << dr[debugIdx] << ", " << dtheta[debugIdx] << ", " << dphi[debugIdx] << ") \n";
+			//	std::cout << "dr dtheta dphi = (" << dr[debugIdx] << ", " << dtheta[debugIdx] << ", " << dphi[debugIdx] << ") \n";Microsoft.QuickAction.Bluetooth
 			//}
 			if (r[i] >= r_sky) {
 				state[i] = PhotonState::Escaped;
@@ -241,21 +242,30 @@ void Photons::traceAllRays() {
 			if constexpr (ENABLE_ACCRETION_DISK) {
 				//if (intersectAccretionDisk(r[i], theta[i])) {
 				if constexpr (ENABLE_OPAQUE_DISK) {
-					if (intersectAccretionDisk(r[i], oldTheta, theta[i])) {
+					if (intersectAccretionDisk(r[i], theta[i])) {
+						accumulatedColour[i] = getAccretionColourFloat3(r[i], theta[i], 0.0, 0.0);
 						state[i] = PhotonState::AccretionDiskHit;
 						break;
-						// accretion disk sampler algorithm
+						// simple opaque disk
 					}
 				}
 				if constexpr (!ENABLE_OPAQUE_DISK) {
-					if (intersectAccretionDisk(r[i], oldTheta, theta[i])) {
-						float localOpacity = std::clamp(diskDensity(r[i], phi[i], 0), 0.0f, 1.0f);
-						float3 localEmission = rgbaToFloat3(temperatureToRGB(observedTemperature(r[i], xi[i])));
-						localEmission = relativisticBeaming(r[i], xi[i], localEmission);
+					if (intersectAccretionDisk(r[i], theta[i])) {
+					//if (crossedEquatorialPlane(oldTheta, theta[i]) && r_ISCO <= r[i] && r[i] <= r_acceretion) {
+						float rho0 = diskDensity(r[i], theta[i], phi[i], 0);
+						float opticalDepth = rho0 * ABSORPTION_COEFF * (float)dlambda[i];
+						float localOpacity = 1.0f - std::clamp(expf(-opticalDepth), 0.0f, 1.0f);
+						float3 localEmission = getAccretionColourFloat3(r[i], theta[i], xi[i], 0.0, 0.0);
+
 						(accumulatedColour[i])[0] += transmittance[i] * localEmission[0] * localOpacity;
 						(accumulatedColour[i])[1] += transmittance[i] * localEmission[1] * localOpacity;
 						(accumulatedColour[i])[2] += transmittance[i] * localEmission[2] * localOpacity;
 						transmittance[i] *= (1.0f - localOpacity);
+
+						if (transmittance[i] <= 0.01f) {
+							state[i] = PhotonState::AccretionDiskHit;
+							break;
+						}
 					}
 				}
 			}

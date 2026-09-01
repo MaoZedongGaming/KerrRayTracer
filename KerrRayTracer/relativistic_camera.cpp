@@ -84,14 +84,14 @@ void RelativisticCamera::generatePhotons() {
 		double screenY = (1.0 - 2.0 * ((double)y + 0.5) / (double)height) * tanHalfFov;
 
 		// momenta in the camera's tetrad frame, p_t = E = 1.0
-		double p_1 = 1.0 / sqrt(1.0 + screenX * screenX + screenY * screenY); // x is the forward coordinate in this instance
+		double p_1 = 1.0 / sqrt(1.0 + screenX * screenX + screenY * screenY); // p_1 is p_r which points OUT from the centre of the black hole
 		double p_2 = screenY * p_1; 
 		double p_3 = screenX * p_1;
 
 		// \eta^{\mu \nu} p_\mu = -(1.0)^2 + |p_i|^2 =  -1.0 + 1.0 = 0 so it's a proper lightlike 4 vector
 
 		// momentum projected onto global coordinates, REMEMBER TO FLIP p_1 BECAUSE BL COORDINATES POIMT AWAY FROM THE CENTRE!!!, flip p_2 too because e_theta points downwards
-		Vector4d p = frame.e0 + -p_1 * frame.e1 + -p_2 * frame.e2 + p_3 * frame.e3;
+		Vector4d p = frame.e0 + - p_1 * frame.e1 + -p_2 * frame.e2 + p_3 * frame.e3;
 
 		double g_tp = g_tphi(r, theta);
 		double g_pp = g_phiphi(r, theta);
