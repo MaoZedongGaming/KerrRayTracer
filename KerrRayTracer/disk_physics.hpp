@@ -177,16 +177,16 @@ float diskDensity(double r, double theta, double phi, double cameraTime) {
     double thickness = accretionThickness(r);
     double density0 = noiseGen.sample((float)(r * cos(phi_disk)), (float)(r * sin(phi_disk)), 4);
     double z = r * cos(theta);
-    double spiral = 1.0; /*logSpiral(r, phi_disk);*/
-    return (float)(spiral * density0 * std::exp(-z * z / (2 * thickness * thickness)));
+    //double spiral = logSpiral(r, phi_disk);
+    return (float)(density0 * std::exp(-z * z / (2 * thickness * thickness)));
 }
 
 bool crossedEquatorialPlane(double theta0, double theta1) {
-	return (std::min(theta0, theta1) <= PI / 2.0 && std::max(theta0, theta1) >= PI / 2.0);
+	return (std::min(theta0, theta1) <= PI_2 && std::max(theta0, theta1) >= PI_2);
 }
 
 bool intersectAccretionDisk(double r, double theta) {
-	return ((abs(r * cos(theta)) <= 3.0 * accretionThickness(r) + 1e-3) && (r_ISCO <= r && r <= r_acceretion));
+	return ((abs(r * cos(theta)) <= 3.0 * accretionThickness(r) + 1e-3) && (r_ISCO <= r && r <= r_accretion));
 }
 
 double g_factor(double r, double xi) {
@@ -203,59 +203,23 @@ double observedTemperature(double r, double xi) {
     return g_factor(r, xi) * novikovThorneTemperature(r);
 }
 
-uint32_t applyDensity(double r, double theta, double phi, double cameraTime, uint32_t colour) {
-    float density = diskDensity(r, theta, phi, cameraTime);
-    uint8_t r0 = getRed(colour);
-    uint8_t g = getGreen(colour);
-    uint8_t b = getBlue(colour);
-    r0 = (uint8_t)std::clamp(r0 * density, 0.0f, 255.0f);
-    g = (uint8_t)std::clamp(g * density, 0.0f, 255.0f);
-    b = (uint8_t)std::clamp(b * density, 0.0f, 255.0f);
-    return packRGBA32(r0, g, b);
-}
-
 float3 applyDensity(double r, double theta, double phi, double cameraTime, float3 colour) {
     float density = diskDensity(r, theta, phi, cameraTime);
-    return float3{ std::clamp(colour[0] * density, 0.0f, 1.0f), std::clamp(colour[1] * density, 0.0f, 1.0f), std::clamp(colour[2] * density, 0.0f, 1.0f) };
-}
-
-uint32_t relativisticBeaming(double r, double xi, uint32_t colour) {
-    double intensity = pow(g_factor(r, xi), 4.0);
-    //double reinhard_intensity = intensity / (1.0 + intensity);  // looks hideous
-    //double ACES_intensity = intensity * (2.51 * intensity + 0.03) / (intensity * (2.43 * intensity + 0.59) + 0.14);  // both look pretty bad
-    uint8_t r0 = getRed(colour);
-    uint8_t g = getGreen(colour);
-    uint8_t b = getBlue(colour);
-    r0 = (uint8_t)std::clamp(r0 * intensity, 0.0, 255.0);
-    g = (uint8_t)std::clamp(g * intensity, 0.0, 255.0);
-    b = (uint8_t)std::clamp(b * intensity, 0.0, 255.0);
-    return packRGBA32(r0, g, b);
+    return colour * density;
 }
 
 float3 relativisticBeaming(double r, double xi, float3 colour) {
     float intensity = (float)pow(g_factor(r, xi), 4.0);
-    return float3{ std::clamp(colour[0] * intensity, 0.0f, 1.0f), std::clamp(colour[1] * intensity, 0.0f, 1.0f), std::clamp(colour[2] * intensity, 0.0f, 1.0f) };
+    return colour * intensity;
 }
 
-uint32_t getAccretionColourRGBA(double r, double theta, double xi, double phi = 0, double cameraTime = 0) {
-    uint32_t colour = packRGBA32(0, 0, 0);
-    colour = temperatureToRGB(observedTemperature(r, xi));
-    if constexpr (ENABLE_DOPPLER_BEAMING) {
-        colour = relativisticBeaming(r, xi, colour);
-    }
-	if constexpr (ENABLE_DISK_NOISE) {
-		colour = applyDensity(r, theta, phi, cameraTime, colour);
-	}
-    return colour;
-}
-
-float3 getAccretionColourFloat3(double r, double theta, double xi, double phi = 0, double cameraTime = 0) {
+float3 getAccretionColour(double r, double theta, double xi, double phi, double cameraTime = 0) {
     float3 colour = rgbaToFloat3(temperatureToRGB(observedTemperature(r, xi))) ;
     if constexpr (ENABLE_DOPPLER_BEAMING) {
         colour = relativisticBeaming(r, xi, colour);
     }
-    if constexpr (ENABLE_DISK_NOISE) {
+    /*if constexpr (ENABLE_DISK_DENSITY) {
         colour = applyDensity(r, theta, phi, cameraTime, colour);
-    }
+    }*/
     return colour;
 }

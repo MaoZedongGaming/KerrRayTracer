@@ -4,6 +4,7 @@
 
 //Vector4d is too AoS for raytracing, we need SoA for better cache performance
 
+struct float3;
 
 // RAYTRACING PIPELINE:
 // pipeline is relativistic camera tetrad -> shoot photons in camera frame according to the camera's orientation where E = 1 -> project photon local coordinates to global Boyer-Lindquist coordinates -> RKDP integrate first order carter equations -> check if photon escapes, is captured, or hits accretion disk
@@ -11,8 +12,6 @@
 
 // RAYMARCHING PIPELINE:
 // each photon holds a float3 of colour luminance and integrates the whole way around until hitting the skybox, only terminating early if it runs out of transmittance or hitting the outer horizon (turn off outer horizon for future experiments)
-
-using float3 = std::array<float, 3>;
 
 enum class PhotonState : uint8_t {
 	Active = 0,

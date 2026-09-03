@@ -2,6 +2,7 @@
 #include "parameters.hpp"
 #include "config.hpp"
 #include "disk_physics.hpp"
+#include "rendering_maths.hpp"
 #include <cmath>
 #include <algorithm>
 #include <iostream>
@@ -151,6 +152,8 @@ void Photons::adaptiveRK4StepRay(size_t i) {
 	r[i] = std::max(next_r, 0.0);
 	theta[i] = std::clamp(next_theta, 1e-14, PI - 1e-14);
 	phi[i] += dlambda / 6.0 * (k1.dphi + 2.0 * k2.dphi + 2.0 * k3.dphi + k4.dphi);
+	phi[i] = std::fmod(phi[i], TWO_PI);
+	phi[i] += (phi[i] < 0.0) * TWO_PI;
 
 	sign_r[i] *= (2 * (abs(k4.dr) >= 1e-14) - 1);
 	sign_theta[i] *= (2 * (abs(k4.dtheta) >= 1e-14) - 1);
@@ -203,16 +206,11 @@ void Photons::adaptiveRK5StepRay(size_t i) {
 
 void Photons::traceAllRays() {
 	constexpr int MAX_STEPS = 40000;
-	constexpr float ABSORPTION_COEFF = 3000.0f;
+	constexpr float ABSORPTION_COEFF = 700.0f;
+	constexpr float3 AMBIENT_GLOW_COLOUR = float3{ 1.0f, 1.0f, 1.0f };
 	#pragma omp parallel for schedule(dynamic, 16)
 	for (int i = 0; i < count; ++i) {
 		for (size_t steps = 0; steps < MAX_STEPS; ++steps) {
-			//constexpr size_t debugIdx = 599 + (600 * 200);
-			//if (i == debugIdx) {
-			//	std::cout << "r theta phi = (" << r[debugIdx] << ", " << theta[debugIdx] << ", " << phi[debugIdx] << ") \n";
-			//	//std::cout << "phi = " << phi[304] << " dr = " << dphi[304] << "\n";
-			//	std::cout << "dr dtheta dphi = (" << dr[debugIdx] << ", " << dtheta[debugIdx] << ", " << dphi[debugIdx] << ") \n";Microsoft.QuickAction.Bluetooth
-			//}
 			if (r[i] >= r_sky) {
 				state[i] = PhotonState::Escaped;
 				break;
@@ -224,7 +222,7 @@ void Photons::traceAllRays() {
 				}
 			}
 
-			double oldTheta = theta[i];
+			//double oldTheta = theta[i];
 
 			if constexpr (RKDP_INTEGRATION) {
 				rkdpStepRay(i);
@@ -243,7 +241,7 @@ void Photons::traceAllRays() {
 				//if (intersectAccretionDisk(r[i], theta[i])) {
 				if constexpr (ENABLE_OPAQUE_DISK) {
 					if (intersectAccretionDisk(r[i], theta[i])) {
-						accumulatedColour[i] = getAccretionColourFloat3(r[i], theta[i], 0.0, 0.0);
+						accumulatedColour[i] = getAccretionColour(r[i], theta[i], 0.0, 0.0);
 						state[i] = PhotonState::AccretionDiskHit;
 						break;
 						// simple opaque disk
@@ -252,15 +250,16 @@ void Photons::traceAllRays() {
 				if constexpr (!ENABLE_OPAQUE_DISK) {
 					if (intersectAccretionDisk(r[i], theta[i])) {
 					//if (crossedEquatorialPlane(oldTheta, theta[i]) && r_ISCO <= r[i] && r[i] <= r_acceretion) {
+						float ds = (float)dlambda[i];
 						float rho0 = diskDensity(r[i], theta[i], phi[i], 0);
-						float opticalDepth = rho0 * ABSORPTION_COEFF * (float)dlambda[i];
-						float localOpacity = 1.0f - std::clamp(expf(-opticalDepth), 0.0f, 1.0f);
-						float3 localEmission = getAccretionColourFloat3(r[i], theta[i], xi[i], 0.0, 0.0);
+						//float stepTransmittance = expf(-rho0 * ABSORPTION_COEFF * ds);
+						float opticalDepth = rho0 * ABSORPTION_COEFF;
+						float localOpacity = 1.0f - std::clamp(expf(-opticalDepth * ds), 0.0f, 1.0f);
+						float3 localEmission = getAccretionColour(r[i], theta[i], xi[i], phi[i], 0.0) * rho0;
 
-						(accumulatedColour[i])[0] += transmittance[i] * localEmission[0] * localOpacity;
-						(accumulatedColour[i])[1] += transmittance[i] * localEmission[1] * localOpacity;
-						(accumulatedColour[i])[2] += transmittance[i] * localEmission[2] * localOpacity;
-						transmittance[i] *= (1.0f - localOpacity);
+						accumulatedColour[i] += transmittance[i] * localEmission * localOpacity;
+						//accumulatedColour[i] += rho0 * AMBIENT_GLOW_COLOUR * ds;
+						transmittance[i] *= 1.0f - localOpacity;
 
 						if (transmittance[i] <= 0.01f) {
 							state[i] = PhotonState::AccretionDiskHit;

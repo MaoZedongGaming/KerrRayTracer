@@ -19,7 +19,7 @@ constexpr double a = 0.6;
 
 constexpr double r_sky = 40.0; // skybox radius from the centre
 
-constexpr double r_acceretion = 20.0; // maximal radius of acceretion disk
+constexpr double r_accretion = 20.0; // maximal radius of accretion disk
 
 
 constexpr double MAX_TEMP = 6000.0; //kelvin, 6000K minimum otherwise the accretion disk redshifts itself pure black
@@ -43,3 +43,5 @@ namespace {
 const double r_horizon = calculateOuterHorizon();  // outer event horizon radius, no constexpr sqrt before C++26 :(
 
 const double r_ISCO = calculateCorotatingISCORadius(); // radius of the innermost stable circular orbit for corotating/prograde gasses 
+
+//const double r_ISCO = 10.0; // they manually set the ISCO to 10.0 in interstellar instead of using the actual value of 4.233 for a=0.6, probably to make the accretion disk more visible and less redshifted, which is a reasonable artistic choice

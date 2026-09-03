@@ -11,8 +11,8 @@ int main() {
     #pragma omp single
 		std::cout << "Running with " << omp_get_num_threads() << " thread(s)\n";
 	}
-	constexpr int WIDTH = 600;
-	constexpr int HEIGHT = 400;
+	constexpr int WIDTH = 1920;
+	constexpr int HEIGHT = 1080;
 
 	SDL_Init(SDL_INIT_VIDEO);
 
@@ -32,7 +32,7 @@ int main() {
 	
 	RelativisticCamera camera(WIDTH, HEIGHT);
 	camera.setPosition(30.0, 1.5);
-	camera.turnLeft(0.1);
+	//camera.turnLeft(-0.1);
 
 	camera.initTetrad();
 	SDL_Log("generating photons...\n");
@@ -50,7 +50,7 @@ int main() {
 	ms_elapsed = SDL_GetTicks();
 	SDL_Log("finished drawing screen in %u ms!\n", ms_elapsed);
 
-	saveTextureToPNG(renderer, streamTexture, "marched_disk_test_8.png");
+	saveTextureToPNG(renderer, streamTexture, "raymarched_kerr_1080p_no_gamma.png");
 	/*
 	SDL_Event event;
 	while (running) {

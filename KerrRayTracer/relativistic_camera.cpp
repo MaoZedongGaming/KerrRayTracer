@@ -1,7 +1,7 @@
 #include "relativistic_camera.hpp"
 #include "general_relativity.hpp"
 #include "parameters.hpp"
-#include "photons.hpp"
+#include "rendering_maths.hpp"
 #include "maths.hpp"
 #include <algorithm>
 #include <iostream>
@@ -25,7 +25,7 @@ void RelativisticCamera::setPosition(double r, double theta, double phi) {
 	position[0] = 0;
 	position[1] = r;
 	position[2] = std::clamp(theta, 0.01, PI - 0.01);
-	position[3] = phi;
+	position[3] = std::fmod(phi, TWO_PI) + (phi < 0.0) * TWO_PI;
 
 	velocity[0] = 1.0;
 	velocity[1] = 0;
@@ -69,11 +69,16 @@ void RelativisticCamera::generatePhotons() {
 		photons.phi[i] = position[3];
 		photons.state[i] = PhotonState::Active;
 		photons.dlambda[i] = 0.1;
-		photons.accumulatedColour[i] = { 0.0f, 0.0f, 0.0f };
+		photons.accumulatedColour[i] = float3{ 0.0f, 0.0f, 0.0f };
 		photons.transmittance[i] = 1.0f;
 
 		int x = i % width;
 		int y = i / (int) width;
+
+		//if (x == width / 2) {
+		//	photons.accumulatedColour[i] = float3{ 0.0f, 1.0f, 0.0f }; // debug pixel 
+		//	photons.transmittance[i] = 0.0f;
+		//}  // not the fault of the pixel at the centre of the screen
 
 		// standard raytracing projection equation, first term puts (x, y) in centre of coordinates, second term applies the proper fov, x gets scaled by aspect ratio
 		// must add 0.5 to offset integer screen coordinates because the constants are calculated wrong when x or y = 0 
@@ -91,7 +96,12 @@ void RelativisticCamera::generatePhotons() {
 		// \eta^{\mu \nu} p_\mu = -(1.0)^2 + |p_i|^2 =  -1.0 + 1.0 = 0 so it's a proper lightlike 4 vector
 
 		// momentum projected onto global coordinates, REMEMBER TO FLIP p_1 BECAUSE BL COORDINATES POIMT AWAY FROM THE CENTRE!!!, flip p_2 too because e_theta points downwards
-		Vector4d p = frame.e0 + - p_1 * frame.e1 + -p_2 * frame.e2 + p_3 * frame.e3;
+		Vector4d p = frame.e0 + -p_1 * frame.e1 + -p_2 * frame.e2 + p_3 * frame.e3;
+
+		//if (abs(p[3]) <= 1e-14) {
+		//	photons.accumulatedColour[i] = float3{ 0.0f, 1.0f, 0.0f }; // debug pixel 
+		//	photons.transmittance[i] = 0.0f;
+		//}
 
 		double g_tp = g_tphi(r, theta);
 		double g_pp = g_phiphi(r, theta);
@@ -116,6 +126,7 @@ void RelativisticCamera::generatePhotons() {
 		photons.dtheta[i] = derivatives.dtheta;
 		photons.dphi[i] = derivatives.dphi;
 
+		// don't add noise because the the conserved constants are finicky 
 		/*photons.dr[i] = p[1];
 		photons.dtheta[i] = p[2];
 		photons.dphi[i] = p[3];*/

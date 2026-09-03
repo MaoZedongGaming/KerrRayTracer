@@ -47,15 +47,9 @@ std::vector<uint32_t> unpackImage(char const* filepath, size_t& outWidth, size_t
 
 // LUTs, convert to textures when porting to hlsl
 
-std::vector<uint32_t> skyPixels = unpackImage("resources/Milky_Way_360.png", SKY_WIDTH, SKY_HEIGHT);
+std::vector<uint32_t> skyPixels = unpackImage("resources/2k_stars.png", SKY_WIDTH, SKY_HEIGHT);
 
 uint32_t sampleSkyField(double theta, double phi) {
-    //phi = phi - TWO_PI * std::floor(phi / TWO_PI);
-    phi = std::fmod(phi, TWO_PI);
-    phi += (phi <= 0.0) * TWO_PI;
-    //phi = std::fmod(phi, PI) + PI;
-    /*phi = std::fmod(phi, TWO_PI) + PI;
-    phi += (phi < 0.0) * TWO_PI;*/
     double u = phi / TWO_PI;
     double v = std::clamp(theta / PI, 0.0, 1.0);
     size_t x = (size_t)(u * SKY_WIDTH) % SKY_WIDTH;
@@ -65,30 +59,29 @@ uint32_t sampleSkyField(double theta, double phi) {
 
 void drawScreen(RelativisticCamera& camera, SDL_Texture* streamTexture) {
     #pragma omp parallel for schedule(dynamic, 16)
-    for (int photonIndex = 0; photonIndex < camera.width * camera.height; ++photonIndex) {
-        switch (camera.photons.state[photonIndex]) {
+    for (int i = 0; i < camera.width * camera.height; ++i) {
+        switch (camera.photons.state[i]) {
         case PhotonState::Active:
             if constexpr (PIXEL_DEBUG) {
-                 camera.pixelBuffer[photonIndex] = packRGBA32(255, 0, 255);
+                 camera.pixelBuffer[i] = packRGBA32(255, 0, 255);
                  break;
             }
+			[[fallthrough]];
         case PhotonState::Captured:
-            camera.pixelBuffer[photonIndex] = float3ToRGBA(camera.photons.accumulatedColour[photonIndex]);
+            camera.pixelBuffer[i] = float3ToRGBA(camera.photons.accumulatedColour[i]);
             break;
         case PhotonState::Escaped:
             if constexpr (ENABLE_OPAQUE_DISK) {
-                camera.pixelBuffer[photonIndex] = sampleSkyField(camera.photons.theta[photonIndex], camera.photons.phi[photonIndex]);
+                camera.pixelBuffer[i] = sampleSkyField(camera.photons.theta[i], camera.photons.phi[i]);
             }
             if constexpr (!ENABLE_OPAQUE_DISK) {
-                float3 skyboxColour = rgbaToFloat3(sampleSkyField(camera.photons.theta[photonIndex], camera.photons.phi[photonIndex]));
-                float r = std::clamp((camera.photons.accumulatedColour[photonIndex])[0] + camera.photons.transmittance[photonIndex] * skyboxColour[0], 0.0f, 1.0f);
-                float g = std::clamp((camera.photons.accumulatedColour[photonIndex])[1] + camera.photons.transmittance[photonIndex] * skyboxColour[1], 0.0f, 1.0f);
-                float b = std::clamp((camera.photons.accumulatedColour[photonIndex])[2] + camera.photons.transmittance[photonIndex] * skyboxColour[2], 0.0f, 1.0f);
-                camera.pixelBuffer[photonIndex] = float3ToRGBA(float3{ r, g, b });
+                float3 skyboxColour = rgbaToFloat3(sampleSkyField(camera.photons.theta[i], camera.photons.phi[i]));
+				float3 gasColour = camera.photons.accumulatedColour[i] + camera.photons.transmittance[i] * skyboxColour * 0.7f;  // extra factor to dim the skyfield to emphasise the accretion disk
+                camera.pixelBuffer[i] = float3ToRGBA(gasColour);
             }
             break;
         case PhotonState::AccretionDiskHit:
-            camera.pixelBuffer[photonIndex] = float3ToRGBA(camera.photons.accumulatedColour[photonIndex]);
+            camera.pixelBuffer[i] = float3ToRGBA(camera.photons.accumulatedColour[i]);
             break;
         }
     }
